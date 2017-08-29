@@ -11,11 +11,11 @@
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
-    <x:Property Name="orchestratorURL" Type="InArgument(x:String)" />
-    <x:Property Name="token" Type="InArgument(x:String)" />
-    <x:Property Name="numberOfRobots" Type="InArgument(x:Int32)" />
-    <x:Property Name="specificRobots" Type="InArgument(s:String[])" />
-    <x:Property Name="processKey" Type="InArgument(x:String)" />
+    <x:Property Name="in_orchestratorURL" Type="InArgument(x:String)" />
+    <x:Property Name="in_token" Type="InArgument(x:String)" />
+    <x:Property Name="in_numberOfRobots" Type="InArgument(x:Int32)" />
+    <x:Property Name="in_specificRobots" Type="InArgument(s:String[])" />
+    <x:Property Name="in_processKey" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -74,16 +74,16 @@
       <Variable x:TypeArguments="x:String" Name="startJobBody" />
       <Variable x:TypeArguments="x:Int32" Name="statusCode" />
       <Variable x:TypeArguments="x:String" Name="startJobResult" />
-      <Variable x:TypeArguments="x:String" Default="[orchestratorURL + &quot;/odata/Jobs/UiPath.Server.Configuration.OData.StartJobs&quot;]" Name="startJobURL" />
+      <Variable x:TypeArguments="x:String" Default="[in_orchestratorURL + &quot;/odata/Jobs/UiPath.Server.Configuration.OData.StartJobs&quot;]" Name="startJobURL" />
     </Sequence.Variables>
-    <If Condition="[numberOfRobots = 0]" sap2010:WorkflowViewState.IdRef="If_3">
+    <If Condition="[in_numberOfRobots = 0]" sap2010:WorkflowViewState.IdRef="If_3">
       <If.Then>
         <Assign sap2010:WorkflowViewState.IdRef="Assign_1">
           <Assign.To>
             <OutArgument x:TypeArguments="x:String">[startJobBody]</OutArgument>
           </Assign.To>
           <Assign.Value>
-            <InArgument x:TypeArguments="x:String" xml:space="preserve">["{  'startInfo': {'ReleaseKey': '"+ processKey + "',   'RobotIds': [" + string.Join(",", specificRobots) + "], 'Strategy': 'Specific'}}"]</InArgument>
+            <InArgument x:TypeArguments="x:String" xml:space="preserve">["{  'startInfo': {'ReleaseKey': '"+ in_processKey + "',   'RobotIds': [" + string.Join(",", in_specificRobots) + "], 'Strategy': 'Specific'}}"]</InArgument>
           </Assign.Value>
         </Assign>
       </If.Then>
@@ -93,7 +93,7 @@
             <OutArgument x:TypeArguments="x:String">[startJobBody]</OutArgument>
           </Assign.To>
           <Assign.Value>
-            <InArgument x:TypeArguments="x:String" xml:space="preserve">["{  'startInfo': {'ReleaseKey': '"+ processKey + "',   'NoOfRobots': " + numberOfRobots.ToString + ", 'Strategy': 'RobotCount'}}"]</InArgument>
+            <InArgument x:TypeArguments="x:String" xml:space="preserve">["{  'startInfo': {'ReleaseKey': '"+ in_processKey + "',   'NoOfRobots': " + in_numberOfRobots.ToString + ", 'Strategy': 'RobotCount'}}"]</InArgument>
           </Assign.Value>
         </Assign>
       </If.Else>
@@ -105,7 +105,7 @@
       </ui:HttpClient.Attachments>
       <ui:HttpClient.Headers>
         <InArgument x:TypeArguments="x:String" x:Key="Content-Type">application/json</InArgument>
-        <InArgument x:TypeArguments="x:String" x:Key="Authorization">["Bearer "+ token]</InArgument>
+        <InArgument x:TypeArguments="x:String" x:Key="Authorization">["Bearer "+ in_token]</InArgument>
       </ui:HttpClient.Headers>
       <ui:HttpClient.Parameters>
         <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
@@ -120,26 +120,26 @@
         <Throw Exception="[new Exception(&quot;Status code: &quot; + statusCode.ToString + &quot;. Error: &quot; + startJobResult)]" sap2010:WorkflowViewState.IdRef="Throw_1" />
       </If.Then>
     </If>
-    <sads:DebugSymbol.Symbol>d0RDOlxVc2Vyc1xzb3Jpbi5jYWxpblxEb2N1bWVudHNcVWlQYXRoXE9yY2hlc3RyYXRvclJFU1RcU3RhcnRKb2IueGFtbBhIA3wOAgEBTTRNjQECAQJPBWQKAgEbZQVltAECARlmBXQVAgEMdQV1kwECAQl2BXoKAgEETxNPKQIBHFEJWBICASRbCWISAgEeZVxlsQECARpm6gNm8QMCARhmgwJmkwICARZsRmxYAgEUZrMDZsUDAgESZt8CZu4CAgEQZtEDZt8DAgEOa0VrVQIBDXVcdZABAgEKdhN2KwIBBXgJeLIBAgEHUzVTQwIBJV01XUMCAR94GniFAQIBCA==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3hDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcT3JjaGVzdHJhdG9yXFN0YXJ0Sm9iLnhhbWwYSAN8DgIBAU00TZABAgECTwVkCgIBG2UFZbQBAgEZZgV0FQIBDHUFdZMBAgEJdgV6CgIBBE8TTywCARxRCVgSAgEkWwliEgIBHmVcZbEBAgEaZuoDZvEDAgEYZoMCZpMCAgEWbEZsWwIBFGazA2bFAwIBEmbfAmbuAgIBEGbRA2bfAwIBDmtFa1UCAQ11XHWQAQIBCnYTdisCAQV4CXiyAQIBB1M1U0MCASVdNV1DAgEfeBp4hQECAQg=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="509,208" />
-      <sap2010:ViewStateData Id="WriteLine_1" sap:VirtualizedContainerService.HintSize="509,61" />
-      <sap2010:ViewStateData Id="HttpClient_1" sap:VirtualizedContainerService.HintSize="509,22" />
-      <sap2010:ViewStateData Id="WriteLine_2" sap:VirtualizedContainerService.HintSize="509,61" />
-      <sap2010:ViewStateData Id="Throw_1" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="509,208" />
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="531,844">
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="243.2,60" />
+      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="243.2,60" />
+      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="511.2,209.6" />
+      <sap2010:ViewStateData Id="WriteLine_1" sap:VirtualizedContainerService.HintSize="511.2,62.4" />
+      <sap2010:ViewStateData Id="HttpClient_1" sap:VirtualizedContainerService.HintSize="511.2,22.4" />
+      <sap2010:ViewStateData Id="WriteLine_2" sap:VirtualizedContainerService.HintSize="511.2,62.4" />
+      <sap2010:ViewStateData Id="Throw_1" sap:VirtualizedContainerService.HintSize="200,22.4" />
+      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="511.2,209.6" />
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="533.6,851.2">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="StartJob_1" sap:VirtualizedContainerService.HintSize="571,924" />
+      <sap2010:ViewStateData Id="StartJob_1" sap:VirtualizedContainerService.HintSize="573.6,931.2" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
