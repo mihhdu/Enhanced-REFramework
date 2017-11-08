@@ -95,16 +95,6 @@
                 <If Condition="[Config is Nothing]" DisplayName="If first run - read Config file" sap2010:WorkflowViewState.IdRef="If_1">
                   <If.Then>
                     <Sequence DisplayName="First Run" sap2010:WorkflowViewState.IdRef="Sequence_17">
-                      <ui:AddLogFields sap2010:Annotation.AnnotationText="Add BusinessProcessName" DisplayName="Add Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_1">
-                        <ui:AddLogFields.Fields>
-                          <InArgument x:TypeArguments="x:String" x:Key="logF_BusinessProcessName">Framework</InArgument>
-                        </ui:AddLogFields.Fields>
-                      </ui:AddLogFields>
-                      <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke KillAllProcesses workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_18" UnSafe="False" WorkflowFileName="Framework\KillAllProcesses.xaml">
-                        <ui:InvokeWorkflowFile.Arguments>
-                          <scg:Dictionary x:TypeArguments="x:String, Argument" />
-                        </ui:InvokeWorkflowFile.Arguments>
-                      </ui:InvokeWorkflowFile>
                       <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke InitAllSettings workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_12" UnSafe="False" WorkflowFileName="Framework\InitAllSettings.xaml">
                         <ui:InvokeWorkflowFile.Arguments>
                           <InArgument x:TypeArguments="x:String" x:Key="in_ConfigFile">Data\Config.xlsx</InArgument>
@@ -112,6 +102,16 @@
                           <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="out_Config">[Config]</OutArgument>
                         </ui:InvokeWorkflowFile.Arguments>
                       </ui:InvokeWorkflowFile>
+                      <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke KillAllProcesses workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_18" UnSafe="False" WorkflowFileName="Framework\KillAllProcesses.xaml">
+                        <ui:InvokeWorkflowFile.Arguments>
+                          <scg:Dictionary x:TypeArguments="x:String, Argument" />
+                        </ui:InvokeWorkflowFile.Arguments>
+                      </ui:InvokeWorkflowFile>
+                      <ui:AddLogFields sap2010:Annotation.AnnotationText="Add BusinessProcessName" DisplayName="Add Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_1">
+                        <ui:AddLogFields.Fields>
+                          <InArgument x:TypeArguments="x:String" x:Key="logF_BusinessProcessName">[Config("logF_BusinessProcessName").ToString]</InArgument>
+                        </ui:AddLogFields.Fields>
+                      </ui:AddLogFields>
                       <If Condition="[TransactionItem isNot Nothing AndAlso (TransactionItem.GetType is GetType(Uipath.Core.QueueItem))]" DisplayName="If TransactionItem is a QueueItem" sap2010:WorkflowViewState.IdRef="If_9">
                         <If.Then>
                           <Sequence DisplayName="Obtain Information about Queue" sap2010:WorkflowViewState.IdRef="Sequence_19">
@@ -425,12 +425,14 @@
       <Variable x:TypeArguments="x:String" Name="TransactionID" />
       <Variable x:TypeArguments="sd:DataTable" Name="TransactionData" />
     </StateMachine.Variables>
-    <sads:DebugSymbol.Symbol>d11DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xNYWluLnhhbWyJAUgDrQMSAgEBpAMzpAM2AwHPAaYDM6YDNgMBzgHNAQ+MAxcDAZ4BgwIX3AIfAgFo5QIXhAMfAgFbSgeaAw8CAQLPARP+AR4DAakB4QIr4QJKAwGnAd8CF98C4QEDAaMBiQMriQNHAwGiAYcDF4cDugEDAaABhQIb1QImAgFv2AKWAdgCswECAWzZAp8B2QLGAQIBa9oCigLaAskCAgFq5wIbggMmAgFdTAvIARYCAQ6RAyORAzsCAQuPAw+PA50BAgEKlwMjlwM+AgEIlQMPlQP2AQIBBNMBFdMBiwEDAcsB1AEV/QEaAwGqAd8ChQHfAt4BAwGkAYcDhQGHA7cBAwGhAYcCH5YCKgMBkwG5Ah/TAioCAXqeAiOlAiwCAXWtAiO0AiwCAXDpAh/vAioCAWX3AiP+Ai4CAV5OD7UBGgIBFL0BE8QBHAIBD5UDfZUD8wECAQXTAXrTAYgBAwHMAdQBI9QBMQMBqwHWARnWAacBAwHJAdkBGfsBJAMBrQGIAiGPAioDAZoBkAIhlQI5AwGUAbsCI8cCOwIBf88CJ88ChwICAXujAl6jAmkCAXigAl+gAnYCAXayAlGyAlwCAXOvAlKvAl8CAXHqAiHuAjkCAWb4AiX4AokCAgFh+QIl/QI9AgFfTxFWGgIBV1cRXhoCAVNfEa8BFgIBGbABEbQBKQIBFcIBQcIBTAIBEr8BQr8BTwIBENYBjAHWAaQBAwHKAdsBHeUBNQMBuQHtASH3ASwDAa4BjQJcjQJlAwGdAYoCXYoCdAMBmwGTAniTAoABAwGYAZICa5ICfAMBlgGQAtsBkALpAQMBlQG+Ami+AnUDAZEBvwJ/vwKWAQMBjwHEAmvEAn4DAY0BwwJrwwJ+AwGLAcECZ8ECdAMBiQG9Anq9AoIBAwGHAcACbcACfgMBhQHCAm3CAoABAwGDAcUCZ8UCdgMBgQG7AuABuwKFAgMBgAHPApYBzwKEAgIBfOoC3QHqAoICAgFn+AKTAfgChgICAWL5At0B+QL+AQIBYFQ/VEgCAVpRQFFNAgFYXEBcWwIBVllBWVICAVRfH180AgEaYRWtASACARyyAWiyAXACARewAc0BsAHxAQIBFuEBZ+EBegMBxwHgAWfgAXoDAcUB4gFj4gFyAwHDAd8Bad8BegMBwQHdAWTdAXcDAb8B3gF03gF8AwG9AeMBauMBewMBuwHbAdgB2wH7AQMBugHuASPuAb4CAwGzAe8BI/YBLAMBrwFiF2YpAgFRZxdrLwIBT2wXci8CAUlzF6wBHAIBHe4BkgHuAbsCAwG0AfQBUvQBWwMBsgHxAVPxAWQDAbABZGNkbAIBUmfQAWfxAQIBUHBwcHgCAU1szwFs7wECAUxvXG93AgFLblhuaAIBSnMlc4oBAgEedRuqASYCAR98HYIBNQIBQYMBHYsBNQIBNYwBHZMBNQIBK5QBHakBIgIBIIABZYABdQIBR39ef40BAgFFfl5+aAIBQ3zXAXz5AQIBQoUBY4UBhwECAT+JAVuJAWICAT2HAWqHAXQCATuIAVyIAaUBAgE5hgFfhgGLAQIBN4MB2gGDAYwCAgE2jgFjjgGHAQIBM48BWY8BYAIBMYwB3gGMAZsCAgEwkAFdkAGHAQIBLpEBcpEBjQECASyUASuUAbcBAgEhlgEhnQEqAgEmoAEhpwEqAgEimwFOmwGTAQIBKZgBTZgBZwIBJ6UBTKUBTwIBJaIBTaIBZwIBIw==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d11DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xNYWluLnhhbWyJAUgDrQMSAgEBpAMzpAM2AwHQAaYDM6YDNgMBzwHNAQ+MAxcDAZ8BgwIX3AIfAgFp5QIXhAMfAgFcSgeaAw8CAQLPARP+AR4DAaoB4QIr4QJKAwGoAd8CF98C4QEDAaQBiQMriQNHAwGjAYcDF4cDugEDAaEBhQIb1QImAgFw2AKWAdgCswECAW3ZAp8B2QLGAQIBbNoCigLaAskCAgFr5wIbggMmAgFeTAvIARYCAQ6RAyORAzsCAQuPAw+PA50BAgEKlwMjlwM+AgEIlQMPlQP2AQIBBNMBFdMBiwEDAcwB1AEV/QEaAwGrAd8ChQHfAt4BAwGlAYcDhQGHA7cBAwGiAYcCH5YCKgMBlAG5Ah/TAioCAXueAiOlAiwCAXatAiO0AiwCAXHpAh/vAioCAWb3AiP+Ai4CAV9OD7UBGgIBFL0BE8QBHAIBD5UDfZUD8wECAQXTAXrTAYgBAwHNAdQBI9QBMQMBrAHWARnWAacBAwHKAdkBGfsBJAMBrgGIAiGPAioDAZsBkAIhlQI5AwGVAbsCI8cCOwMBgAHPAifPAocCAgF8owJeowJpAgF5oAJfoAJ2AgF3sgJRsgJcAgF0rwJSrwJfAgFy6gIh7gI5AgFn+AIl+AKJAgIBYvkCJf0CPQIBYE8RVhoCAVhXEV4aAgFUXxGvARYCARmwARG0ASkCARXCAUHCAUwCARK/AUK/AU8CARDWAYwB1gGkAQMBywHbAR3lATUDAboB7QEh9wEsAwGvAY0CXI0CZQMBngGKAl2KAnQDAZwBkwJ4kwKAAQMBmQGSAmuSAnwDAZcBkALbAZAC6QEDAZYBvgJovgJ1AwGSAb8Cf78ClgEDAZABxAJrxAJ+AwGOAcMCa8MCfgMBjAHBAmfBAnQDAYoBvQJ6vQKCAQMBiAHAAm3AAn4DAYYBwgJtwgKAAQMBhAHFAmfFAnYDAYIBuwLgAbsChQIDAYEBzwKWAc8ChAICAX3qAt0B6gKCAgIBaPgCkwH4AoYCAgFj+QLdAfkC/gECAWFUP1RIAgFbUUBRTQIBWVxAXFsCAVdZQVlSAgFVXx9fNAIBGmEVrQEgAgEcsgFosgFwAgEXsAHNAbAB8QECARbhAWfhAXoDAcgB4AFn4AF6AwHGAeIBY+IBcgMBxAHfAWnfAXoDAcIB3QFk3QF3AwHAAd4BdN4BfAMBvgHjAWrjAXsDAbwB2wHYAdsB+wEDAbsB7gEj7gG+AgMBtAHvASP2ASwDAbABYhdoLwIBTmkXbS8CAUxuF3IpAgFJcxesARwCAR3uAZIB7gG7AgMBtQH0AVL0AVsDAbMB8QFT8QFkAwGxAWZwZngCAVJizwFi7wECAVFlXGV3AgFQZFhkaAIBT2nQAWnxAQIBTXBjcJABAgFKcyVzigECAR51G6oBJgIBH3wdggE1AgFBgwEdiwE1AgE1jAEdkwE1AgErlAEdqQEiAgEggAFlgAF1AgFHf15/jQECAUV+Xn5oAgFDfNcBfPkBAgFChQFjhQGHAQIBP4kBW4kBYgIBPYcBaocBdAIBO4gBXIgBpQECATmGAV+GAYsBAgE3gwHaAYMBjAICATaOAWOOAYcBAgEzjwFZjwFgAgExjAHeAYwBmwICATCQAV2QAYcBAgEukQFykQGNAQIBLJQBK5QBtwECASGWASGdASoCASagASGnASoCASKbAU6bAZMBAgEpmAFNmAFnAgEnpQFMpQFPAgElogFNogFnAgEj</sads:DebugSymbol.Symbol>
   </StateMachine>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
       <sap2010:ViewStateData Id="Assign_5" sap:VirtualizedContainerService.HintSize="804.8,60.8" />
       <sap2010:ViewStateData Id="Assign_13" sap:VirtualizedContainerService.HintSize="804.8,60.8" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_12" sap:VirtualizedContainerService.HintSize="657.6,88" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_18" sap:VirtualizedContainerService.HintSize="657.6,88" />
       <sap2010:ViewStateData Id="AddLogFields_1" sap:VirtualizedContainerService.HintSize="657.6,50.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
@@ -438,8 +440,6 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_18" sap:VirtualizedContainerService.HintSize="657.6,88" />
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_12" sap:VirtualizedContainerService.HintSize="657.6,88" />
       <sap2010:ViewStateData Id="InvokeWorkflowFile_19" sap:VirtualizedContainerService.HintSize="510.4,88" />
       <sap2010:ViewStateData Id="InvokeWorkflowFile_16" sap:VirtualizedContainerService.HintSize="510.4,88" />
       <sap2010:ViewStateData Id="InvokeWorkflowFile_17" sap:VirtualizedContainerService.HintSize="510.4,88" />
@@ -624,7 +624,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="State_3" sap:VirtualizedContainerService.HintSize="460.8,1036">
+      <sap2010:ViewStateData Id="State_3" sap:VirtualizedContainerService.HintSize="211.2,162.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <av:Point x:Key="ShapeLocation">285,380</av:Point>
@@ -731,7 +731,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="State_2" sap:VirtualizedContainerService.HintSize="233.6,88.8">
+      <sap2010:ViewStateData Id="State_2" sap:VirtualizedContainerService.HintSize="870.4,2599.2">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <av:Point x:Key="ShapeLocation">274.5,8.5</av:Point>
