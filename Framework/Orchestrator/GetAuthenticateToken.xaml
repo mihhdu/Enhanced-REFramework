@@ -3,6 +3,7 @@
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
  xmlns:njl="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
+ xmlns:s="clr-namespace:System;assembly=mscorlib"
  xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
@@ -17,6 +18,9 @@
     <x:Property Name="in_usernameOrEmailAddress" Type="InArgument(x:String)" />
     <x:Property Name="in_password" Type="InArgument(x:String)" />
     <x:Property Name="out_token" Type="OutArgument(x:String)" />
+    <x:Property Name="in_wbType" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbLevel" Type="InArgument(x:Int32)" />
+    <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -72,71 +76,199 @@
       <AssemblyReference>System.Runtime.WindowsRuntime</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
-  <Sequence sap2010:Annotation.AnnotationText="This workflow makes a http POST request to the Orchestrator server whose adress and authentication (if no tenants use default) should be provided as inputs. The token received is outputted to be used for further transactions with the Orchestrator server. " DisplayName="GetAuthenticateToken" sap2010:WorkflowViewState.IdRef="Sequence_1">
-    <Sequence.Variables>
-      <Variable x:TypeArguments="x:String" Name="authenticateResult" />
-      <Variable x:TypeArguments="x:String" Default="[in_orchestratorURL + &quot;/api/account/authenticate&quot;]" Name="authenticateURL" />
-      <Variable x:TypeArguments="x:String" Default="[&quot;{&quot;&quot;tenancyName&quot;&quot; : &quot;&quot;&quot; + in_tenancyName + &quot;&quot;&quot;, &quot;&quot;usernameOrEmailAddress&quot;&quot; : &quot;&quot;&quot; + in_usernameOrEmailAddress + &quot;&quot;&quot;, &quot;&quot;password&quot;&quot; :&quot;&quot;&quot;+ in_password +&quot;&quot;&quot;}&quot;]" Name="authenticateBody" />
-      <Variable x:TypeArguments="njl:JObject" Name="authenticateResultJson" />
-      <Variable x:TypeArguments="x:Int32" Name="statusCode" />
-    </Sequence.Variables>
-    <ui:HttpClient ConsumerKey="{x:Null}" ConsumerSecret="{x:Null}" ContinueOnError="{x:Null}" OAuth1Token="{x:Null}" OAuth1TokenSecret="{x:Null}" OAuth2Token="{x:Null}" Password="{x:Null}" ResourcePath="{x:Null}" Username="{x:Null}" AcceptFormat="ANY" Body="[authenticateBody]" BodyFormat="application/json" DisplayName="Authenticate POST Request" EndPoint="[authenticateURL]" sap2010:WorkflowViewState.IdRef="HttpClient_1" Method="POST" Result="[authenticateResult]" StatusCode="[statusCode]" TimeoutMS="10000">
-      <ui:HttpClient.Attachments>
-        <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
-      </ui:HttpClient.Attachments>
-      <ui:HttpClient.Headers>
-        <InArgument x:TypeArguments="x:String" x:Key="Content-Type">application/json</InArgument>
-      </ui:HttpClient.Headers>
-      <ui:HttpClient.Parameters>
-        <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
-      </ui:HttpClient.Parameters>
-      <ui:HttpClient.UrlSegments>
-        <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
-      </ui:HttpClient.UrlSegments>
-    </ui:HttpClient>
-    <If Condition="[statusCode = 200]" sap2010:WorkflowViewState.IdRef="If_1">
-      <If.Then>
-        <Sequence sap2010:WorkflowViewState.IdRef="Sequence_3">
-          <ui:DeserializeJson x:TypeArguments="njl:JObject" DisplayName="Deserialize json - parse POST response" sap2010:WorkflowViewState.IdRef="DeserializeJson`1_1" JsonObject="[authenticateResultJson]" JsonString="[authenticateResult]" />
-          <Assign DisplayName="Assign token value" sap2010:WorkflowViewState.IdRef="Assign_3">
-            <Assign.To>
-              <OutArgument x:TypeArguments="x:String">[out_token]</OutArgument>
-            </Assign.To>
-            <Assign.Value>
-              <InArgument x:TypeArguments="x:String">[authenticateResultJson("result").ToString]</InArgument>
-            </Assign.Value>
-          </Assign>
+  <TryCatch DisplayName="Try processing GetAuthenticateToken" sap2010:WorkflowViewState.IdRef="TryCatch_2">
+    <TryCatch.Variables>
+      <Variable x:TypeArguments="s:DateTime" Name="wbStartTime" />
+    </TryCatch.Variables>
+    <TryCatch.Try>
+      <Sequence DisplayName="GetAuthenticateToken" sap2010:WorkflowViewState.IdRef="Sequence_14">
+        <Sequence DisplayName="Initial Logging" sap2010:WorkflowViewState.IdRef="Sequence_10">
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel" DisplayName="wb Hierarchy" sap2010:WorkflowViewState.IdRef="AddLogFields_5">
+            <ui:AddLogFields.Fields>
+              <InArgument x:TypeArguments="x:String" x:Key="wbType">[in_wbType]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbParent">[in_wbParent]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbLevel">[in_wbLevel.ToString]</InArgument>
+            </ui:AddLogFields.Fields>
+          </ui:AddLogFields>
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbStart" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_6">
+            <ui:AddLogFields.Fields>
+              <InArgument x:TypeArguments="x:String" x:Key="wbStart">[datetime.Now.ToString]</InArgument>
+            </ui:AddLogFields.Fields>
+          </ui:AddLogFields>
         </Sequence>
-      </If.Then>
-      <If.Else>
-        <Throw DisplayName="Throw system exception" Exception="[new Exception(&quot;Status code: &quot; + statusCode.ToString + &quot;. Error: &quot; + authenticateResult)]" sap2010:WorkflowViewState.IdRef="Throw_1" />
-      </If.Else>
-    </If>
-    <sads:DebugSymbol.Symbol>d4QBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcRnJhbWV3b3JrXE9yY2hlc3RyYXRvclxHZXRBdXRoZW50aWNhdGVUb2tlbi54YW1sFgFjAWsBAksDdA4CAQFONE5yAgEGTzRP8QICAQJTBWAVAgEXYQVyCgIBCFP6A1OBBAIBIVODAlOXAgIBH1O/A1PVAwIBHVPnAlP6AgIBG1PhA1PvAwIBGVhFWFUCARhhE2EnAgEJYwltFAIBDXAJcNsBAgELZAtk8gECARJlC2wUAgEOcD9wrgECAQxk2QFk7wECARVkswFkzQECARNqNmphAgERZzdnQgIBDw==</sads:DebugSymbol.Symbol>
-  </Sequence>
+        <Sequence sap2010:Annotation.AnnotationText="This workflow makes a http POST request to the Orchestrator server whose adress and authentication (if no tenants use default) should be provided as inputs. The token received is outputted to be used for further transactions with the Orchestrator server. " DisplayName="GetAuthenticateToken" sap2010:WorkflowViewState.IdRef="Sequence_12">
+          <Sequence.Variables>
+            <Variable x:TypeArguments="x:String" Name="authenticateResult" />
+            <Variable x:TypeArguments="x:String" Default="[in_orchestratorURL + &quot;/api/account/authenticate&quot;]" Name="authenticateURL" />
+            <Variable x:TypeArguments="x:String" Default="[&quot;{&quot;&quot;tenancyName&quot;&quot; : &quot;&quot;&quot; + in_tenancyName + &quot;&quot;&quot;, &quot;&quot;usernameOrEmailAddress&quot;&quot; : &quot;&quot;&quot; + in_usernameOrEmailAddress + &quot;&quot;&quot;, &quot;&quot;password&quot;&quot; :&quot;&quot;&quot;+ in_password +&quot;&quot;&quot;}&quot;]" Name="authenticateBody" />
+            <Variable x:TypeArguments="njl:JObject" Name="authenticateResultJson" />
+            <Variable x:TypeArguments="x:Int32" Name="statusCode" />
+          </Sequence.Variables>
+          <ui:HttpClient ConsumerKey="{x:Null}" ConsumerSecret="{x:Null}" ContinueOnError="{x:Null}" OAuth1Token="{x:Null}" OAuth1TokenSecret="{x:Null}" OAuth2Token="{x:Null}" Password="{x:Null}" ResourcePath="{x:Null}" Username="{x:Null}" AcceptFormat="ANY" Body="[authenticateBody]" BodyFormat="application/json" DisplayName="Authenticate POST Request" EndPoint="[authenticateURL]" sap2010:WorkflowViewState.IdRef="HttpClient_2" Method="POST" Result="[authenticateResult]" StatusCode="[statusCode]" TimeoutMS="10000">
+            <ui:HttpClient.Attachments>
+              <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
+            </ui:HttpClient.Attachments>
+            <ui:HttpClient.Headers>
+              <InArgument x:TypeArguments="x:String" x:Key="Content-Type">application/json</InArgument>
+            </ui:HttpClient.Headers>
+            <ui:HttpClient.Parameters>
+              <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
+            </ui:HttpClient.Parameters>
+            <ui:HttpClient.UrlSegments>
+              <scg:Dictionary x:TypeArguments="x:String, InArgument(x:String)" />
+            </ui:HttpClient.UrlSegments>
+          </ui:HttpClient>
+          <If Condition="[statusCode = 200]" sap2010:WorkflowViewState.IdRef="If_2">
+            <If.Then>
+              <Sequence sap2010:WorkflowViewState.IdRef="Sequence_11">
+                <ui:DeserializeJson x:TypeArguments="njl:JObject" DisplayName="Deserialize json - parse POST response" sap2010:WorkflowViewState.IdRef="DeserializeJson`1_2" JsonObject="[authenticateResultJson]" JsonString="[authenticateResult]" />
+                <Assign DisplayName="Assign token value" sap2010:WorkflowViewState.IdRef="Assign_4">
+                  <Assign.To>
+                    <OutArgument x:TypeArguments="x:String">[out_token]</OutArgument>
+                  </Assign.To>
+                  <Assign.Value>
+                    <InArgument x:TypeArguments="x:String">[authenticateResultJson("result").ToString]</InArgument>
+                  </Assign.Value>
+                </Assign>
+              </Sequence>
+            </If.Then>
+            <If.Else>
+              <Throw DisplayName="Throw system exception" Exception="[new Exception(&quot;Status code: &quot; + statusCode.ToString + &quot;. Error: &quot; + authenticateResult)]" sap2010:WorkflowViewState.IdRef="Throw_2" />
+            </If.Else>
+          </If>
+        </Sequence>
+        <Sequence DisplayName="Final Logging" sap2010:WorkflowViewState.IdRef="Sequence_13">
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbStatus&#xA;wbDurationSec&#xA;wbDurationHrs" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_7">
+            <ui:AddLogFields.Fields>
+              <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Successful</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbStartTime).TotalSeconds.ToString]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbStartTime).TotalHours.ToString]</InArgument>
+            </ui:AddLogFields.Fields>
+          </ui:AddLogFields>
+          <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_3" Level="Info" Message="Screenshot succesful" />
+        </Sequence>
+      </Sequence>
+    </TryCatch.Try>
+    <TryCatch.Catches>
+      <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_2">
+        <ActivityAction x:TypeArguments="s:Exception">
+          <ActivityAction.Argument>
+            <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+          </ActivityAction.Argument>
+          <Sequence DisplayName="Final Logging" sap2010:WorkflowViewState.IdRef="Sequence_15">
+            <Sequence.Variables>
+              <Variable x:TypeArguments="s:DateTime" Name="wbStartTime" />
+            </Sequence.Variables>
+            <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbStatus&#xA;wbDurationSec&#xA;wbDurationHrs" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_8">
+              <ui:AddLogFields.Fields>
+                <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbStartTime).TotalSeconds.ToString]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbStartTime).TotalHours.ToString]</InArgument>
+              </ui:AddLogFields.Fields>
+            </ui:AddLogFields>
+            <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_4" Level="Info" Message="[&quot;GetAuthenticateToken failed with exception &quot; + exception.Message + &quot; at Source &quot; + exception.Source]" />
+            <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_1" />
+          </Sequence>
+        </ActivityAction>
+      </Catch>
+    </TryCatch.Catches>
+    <sads:DebugSymbol.Symbol>d4QBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcRnJhbWV3b3JrXE9yY2hlc3RyYXRvclxHZXRBdXRoZW50aWNhdGVUb2tlbi54YW1sLgFjAWsBAk8DsAEOAgEBVAeWARICAQyeAQurARYCAQJVCWIUAgE1YwmLARQCARSMAQmVARQCAQ2iAQ2oAR8CAQipAQ2pAfkBAgEEqgENqgFEAgEDVgtcHQIBOF0LYR0CATZmOmZ4AgEZZzpn9wICARVrC3gbAgEqeQuKARACARuNAQuTAR0CARCUAQuUAZEBAgEOpAFJpAFPAgELpgFOpgF9AgEKpQFOpQF/AgEJqQF6qQH2AQIBBVlHWVQCAT1YRVhQAgE7WkZaWwIBOV9GX10CATdrgARrhwQCATRriQJrnQICATJrxQNr2wMCATBr7QJrgAMCAS5r5wNr9QMCASxwS3BbAgEreRl5LQIBHHsPhQEaAgEgiAEPiAHhAQIBHo8BR48BUQIBE5EBTJEBewIBEpABTJABfQIBEZQBeJQBjgECAQ98EXz4AQIBJX0RhAEaAgEhiAFFiAG0AQIBH3zfAXz1AQIBKHy5AXzTAQIBJoIBPIIBZwIBJH89f0gCASI=</sads:DebugSymbol.Symbol>
+  </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="HttpClient_1" sap:VirtualizedContainerService.HintSize="560,22.4" />
-      <sap2010:ViewStateData Id="DeserializeJson`1_1" sap:VirtualizedContainerService.HintSize="313.6,60.8" />
-      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="313.6,60.8" />
-      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="336,286.4">
+      <sap2010:ViewStateData Id="AddLogFields_5" sap:VirtualizedContainerService.HintSize="200,94">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Throw_1" sap:VirtualizedContainerService.HintSize="200,22.4" />
-      <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="560,436.8" />
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="582.4,684">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Authenticate_1" sap:VirtualizedContainerService.HintSize="622.4,764" />
+      <sap2010:ViewStateData Id="AddLogFields_6" sap:VirtualizedContainerService.HintSize="200,64">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_10" sap:VirtualizedContainerService.HintSize="222,322">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="HttpClient_2" sap:VirtualizedContainerService.HintSize="561,22" />
+      <sap2010:ViewStateData Id="DeserializeJson`1_2" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="Sequence_11" sap:VirtualizedContainerService.HintSize="336,284">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Throw_2" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="561,432" />
+      <sap2010:ViewStateData Id="Sequence_12" sap:VirtualizedContainerService.HintSize="222,213">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="AddLogFields_7" sap:VirtualizedContainerService.HintSize="314,94">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_3" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Sequence_13" sap:VirtualizedContainerService.HintSize="222,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_14" sap:VirtualizedContainerService.HintSize="244,790">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="AddLogFields_8" sap:VirtualizedContainerService.HintSize="314,94">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_4" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Rethrow_1" sap:VirtualizedContainerService.HintSize="314,22" />
+      <sap2010:ViewStateData Id="Sequence_15" sap:VirtualizedContainerService.HintSize="336,411">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Catch`1_2" sap:VirtualizedContainerService.HintSize="400,480">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TryCatch_2" sap:VirtualizedContainerService.HintSize="414,642" />
+      <sap2010:ViewStateData Id="Authenticate_1" sap:VirtualizedContainerService.HintSize="454,762" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
