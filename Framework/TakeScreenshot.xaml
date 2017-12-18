@@ -14,9 +14,10 @@
   <x:Members>
     <x:Property Name="in_Folder" Type="InArgument(x:String)" />
     <x:Property Name="io_FilePath" Type="InOutArgument(x:String)" />
-    <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
     <x:Property Name="in_wbType" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
     <x:Property Name="in_wbLevel" Type="InArgument(x:Int32)" />
+    <x:Property Name="io_Audit" Type="InOutArgument(scg:Dictionary(x:String, x:Object))" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -68,132 +69,181 @@
       <AssemblyReference>System.ComponentModel.Composition</AssemblyReference>
       <AssemblyReference>TimeSpan2</AssemblyReference>
       <AssemblyReference>System.Runtime.WindowsRuntime</AssemblyReference>
+      <AssemblyReference>Microsoft.VisualStudio.Services.Common</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
-  <TryCatch DisplayName="Try taking a screenshot" sap2010:WorkflowViewState.IdRef="TryCatch_1">
-    <TryCatch.Try>
-      <Sequence DisplayName="Screenshot" sap2010:WorkflowViewState.IdRef="Sequence_2">
-        <Sequence DisplayName="Initial Logging" sap2010:WorkflowViewState.IdRef="Sequence_3">
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel" DisplayName="wb Hierarchy" sap2010:WorkflowViewState.IdRef="AddLogFields_1">
-            <ui:AddLogFields.Fields>
-              <InArgument x:TypeArguments="x:String" x:Key="wbType">[in_wbType]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="wbParent">[in_wbParent]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="wbLevel">[in_wbLevel.ToString]</InArgument>
-            </ui:AddLogFields.Fields>
-          </ui:AddLogFields>
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbStart" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_2">
-            <ui:AddLogFields.Fields>
-              <InArgument x:TypeArguments="x:String" x:Key="wbStart">[datetime.Now.ToString]</InArgument>
-            </ui:AddLogFields.Fields>
-          </ui:AddLogFields>
-        </Sequence>
-        <Sequence sap2010:Annotation.AnnotationText="Usage: Set in_Folder to the folder Name where you want to save the screenshot. Alternatively, supply the full path including filename in io_FilePath. Description: This workflow captures a screenshot and logs it's name and location. It then saves it. If io_FilePath is empty, it will try to save the picture in in_Folder.  It uses .png extension." DisplayName="Screenshot sequence" sap2010:WorkflowViewState.IdRef="Sequence_1">
-          <Sequence.Variables>
-            <Variable x:TypeArguments="ui:Image" Name="screenshot" />
-            <Variable x:TypeArguments="si:FileInfo" Name="screenshotFileInfo" />
-          </Sequence.Variables>
-          <ui:TakeScreenshot WaitBefore="{x:Null}" DisplayName="Take screenshot" sap2010:WorkflowViewState.IdRef="TakeScreenshot_1" Screenshot="[screenshot]">
-            <ui:TakeScreenshot.Target>
-              <ui:Target ClippingRegion="{x:Null}" Element="{x:Null}" Selector="{x:Null}" TimeoutMS="{x:Null}" WaitForReady="INTERACTIVE" />
-            </ui:TakeScreenshot.Target>
-          </ui:TakeScreenshot>
-          <If Condition="[String.IsNullOrEmpty(io_filePath)]" DisplayName="If no file path" sap2010:WorkflowViewState.IdRef="If_3">
-            <If.Then>
-              <Assign DisplayName="Make file path" sap2010:WorkflowViewState.IdRef="Assign_4">
-                <Assign.To>
-                  <OutArgument x:TypeArguments="x:String">[io_FilePath]</OutArgument>
-                </Assign.To>
-                <Assign.Value>
-                  <InArgument x:TypeArguments="x:String">[Path.Combine(in_Folder, "ExceptionScreenshot_"+Now.ToString("yyMMdd.hhmmss")+".png")]</InArgument>
-                </Assign.Value>
-              </Assign>
-            </If.Then>
-          </If>
-          <Assign DisplayName="Create fileInfo with Path" sap2010:WorkflowViewState.IdRef="Assign_2">
-            <Assign.To>
-              <OutArgument x:TypeArguments="si:FileInfo">[screenshotFileInfo]</OutArgument>
-            </Assign.To>
-            <Assign.Value>
-              <InArgument x:TypeArguments="si:FileInfo">[new fileinfo(io_FilePath)]</InArgument>
-            </Assign.Value>
-          </Assign>
-          <If Condition="[Directory.Exists(screenshotFileInfo.DirectoryName)]" DisplayName="If directory does not exist, create it" sap2010:WorkflowViewState.IdRef="If_2">
-            <If.Else>
-              <ui:CreateDirectory ContinueOnError="{x:Null}" DisplayName="Create directory" sap2010:WorkflowViewState.IdRef="CreateDirectory_1" Path="[screenshotFileInfo.DirectoryName]" />
-            </If.Else>
-          </If>
-          <ui:SaveImage DisplayName="Save screenshot" FileName="[io_FilePath]" sap2010:WorkflowViewState.IdRef="SaveImage_1" Image="[screenshot]" />
-          <ui:LogMessage DisplayName="Log message" sap2010:WorkflowViewState.IdRef="LogMessage_1" Level="Info" Message="[&quot;Screenshot saved at: &quot;+io_FilePath]" />
-        </Sequence>
-        <Sequence DisplayName="Final Logging" sap2010:WorkflowViewState.IdRef="Sequence_4">
-          <Sequence.Variables>
-            <Variable x:TypeArguments="s:DateTime" Name="wbStartTime" />
-          </Sequence.Variables>
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbStatus&#xA;wbDurationSec&#xA;wbDurationHrs" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_5">
-            <ui:AddLogFields.Fields>
-              <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Successful</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbStartTime).TotalSeconds.ToString]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbStartTime).TotalHours.ToString]</InArgument>
-            </ui:AddLogFields.Fields>
-          </ui:AddLogFields>
-          <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_2" Level="Info" Message="Screenshot succesful" />
-        </Sequence>
-      </Sequence>
-    </TryCatch.Try>
-    <TryCatch.Catches>
-      <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_1">
-        <ActivityAction x:TypeArguments="s:Exception">
-          <ActivityAction.Argument>
-            <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
-          </ActivityAction.Argument>
-          <Sequence DisplayName="Final Logging" sap2010:WorkflowViewState.IdRef="Sequence_5">
+  <Sequence sap2010:Annotation.AnnotationText="Usage: Set in_Folder to the folder Name where you want to save the screenshot. Alternatively, supply the full path including filename in io_FilePath. Description: This workflow captures a screenshot and logs it's name and location. It then saves it. If io_FilePath is empty, it will try to save the picture in in_Folder.  It uses .png extension." DisplayName="wbTakeScreenshot" sap2010:WorkflowViewState.IdRef="Sequence_27">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbTakeScreenshot_StartTime" />
+      <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" Name="wbTakeScreenshot_Audit" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbType]" Name="wbTakeScreenshot_Type" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbTakeScreenshot_Parent" />
+      <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbTakeScreenshot_Level" />
+    </Sequence.Variables>
+    <TryCatch DisplayName="Try processing wbTakeScreenshot" sap2010:WorkflowViewState.IdRef="TryCatch_2">
+      <TryCatch.Try>
+        <Sequence DisplayName="wbTakeScreenshot" sap2010:WorkflowViewState.IdRef="Sequence_24">
+          <Sequence DisplayName="Screenshot process" sap2010:WorkflowViewState.IdRef="Sequence_20">
             <Sequence.Variables>
-              <Variable x:TypeArguments="s:DateTime" Name="wbStartTime" />
+              <Variable x:TypeArguments="ui:Image" Name="screenshot" />
+              <Variable x:TypeArguments="si:FileInfo" Name="screenshotFileInfo" />
             </Sequence.Variables>
-            <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Log Fields: &#xA;wbStatus&#xA;wbDurationSec&#xA;wbDurationHrs" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_6">
+            <ui:TakeScreenshot WaitBefore="{x:Null}" DisplayName="Take screenshot" sap2010:WorkflowViewState.IdRef="TakeScreenshot_1" Screenshot="[screenshot]">
+              <ui:TakeScreenshot.Target>
+                <ui:Target ClippingRegion="{x:Null}" Element="{x:Null}" Selector="{x:Null}" TimeoutMS="{x:Null}" WaitForReady="INTERACTIVE" />
+              </ui:TakeScreenshot.Target>
+            </ui:TakeScreenshot>
+            <If Condition="[String.IsNullOrEmpty(io_filePath)]" DisplayName="If no file path" sap2010:WorkflowViewState.IdRef="If_9">
+              <If.Then>
+                <Assign DisplayName="Make file path" sap2010:WorkflowViewState.IdRef="Assign_9">
+                  <Assign.To>
+                    <OutArgument x:TypeArguments="x:String">[io_FilePath]</OutArgument>
+                  </Assign.To>
+                  <Assign.Value>
+                    <InArgument x:TypeArguments="x:String">[Path.Combine(in_Folder, "ExceptionScreenshot_"+Now.ToString("yyMMdd.hhmmss")+".png")]</InArgument>
+                  </Assign.Value>
+                </Assign>
+              </If.Then>
+            </If>
+            <Assign DisplayName="Create fileInfo with Path" sap2010:WorkflowViewState.IdRef="Assign_10">
+              <Assign.To>
+                <OutArgument x:TypeArguments="si:FileInfo">[screenshotFileInfo]</OutArgument>
+              </Assign.To>
+              <Assign.Value>
+                <InArgument x:TypeArguments="si:FileInfo">[new fileinfo(io_FilePath)]</InArgument>
+              </Assign.Value>
+            </Assign>
+            <If Condition="[Directory.Exists(screenshotFileInfo.DirectoryName)]" DisplayName="If directory does not exist, create it" sap2010:WorkflowViewState.IdRef="If_10">
+              <If.Else>
+                <ui:CreateDirectory ContinueOnError="{x:Null}" DisplayName="Create directory" sap2010:WorkflowViewState.IdRef="CreateDirectory_4" Path="[screenshotFileInfo.DirectoryName]" />
+              </If.Else>
+            </If>
+            <ui:SaveImage DisplayName="Save screenshot" FileName="[io_FilePath]" sap2010:WorkflowViewState.IdRef="SaveImage_4" Image="[screenshot]" />
+          </Sequence>
+          <Sequence DisplayName="wb Logging Successful" sap2010:WorkflowViewState.IdRef="Sequence_23">
+            <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_6">
               <ui:AddLogFields.Fields>
-                <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
-                <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbStartTime).TotalSeconds.ToString]</InArgument>
-                <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbStartTime).TotalHours.ToString]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbType">[wbTakeScreenshot_Type]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbParent">[wbTakeScreenshot_Parent]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbLevel">[wbTakeScreenshot_Level.ToString]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbStart">[wbTakeScreenshot_StartTime.ToString]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbTakeScreenshot_StartTime).TotalSeconds.ToString]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbTakeScreenshot_StartTime).TotalHours.ToString]</InArgument>
               </ui:AddLogFields.Fields>
             </ui:AddLogFields>
-            <ui:LogMessage DisplayName="Log message" sap2010:WorkflowViewState.IdRef="LogMessage_4" Level="Warn" Message="[&quot;Take screenshot failed with error: &quot;+exception.Message+&quot; at Source: &quot;+exception.Source]" />
+            <If Condition="[cint(wbTakeScreenshot_Audit.Item(&quot;Failed&quot;)) = 0]" DisplayName="If no children wb reported errors" sap2010:WorkflowViewState.IdRef="If_11">
+              <If.Then>
+                <Sequence DisplayName="No Errors" sap2010:WorkflowViewState.IdRef="Sequence_21">
+                  <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Execution Log Fields: &#xA;wbStatus" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_7">
+                    <ui:AddLogFields.Fields>
+                      <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Successful</InArgument>
+                    </ui:AddLogFields.Fields>
+                  </ui:AddLogFields>
+                  <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_11" Level="Info" Message="[&quot;Work Block &quot;+ wbTakeScreenshot_Type.toString + &quot; successful.&quot; + &quot; Screenshot saved at: &quot;+io_FilePath]" />
+                </Sequence>
+              </If.Then>
+              <If.Else>
+                <Sequence DisplayName="Some Errors" sap2010:WorkflowViewState.IdRef="Sequence_22">
+                  <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Execution Log Fields: &#xA;wbStatus" DisplayName="wb Execution" sap2010:WorkflowViewState.IdRef="AddLogFields_8">
+                    <ui:AddLogFields.Fields>
+                      <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Finished with Exceptions</InArgument>
+                    </ui:AddLogFields.Fields>
+                  </ui:AddLogFields>
+                  <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_12" Level="Info" Message="[&quot;Work Block &quot;+ wbTakeScreenshot_Type.toString + &quot; successful with exceptions&quot;  + &quot; Screenshot saved at: &quot;+io_FilePath]" />
+                </Sequence>
+              </If.Else>
+            </If>
+            <Sequence DisplayName="Manage Successful Audit" sap2010:WorkflowViewState.IdRef="Sequence_28">
+              <Assign DisplayName="Increment Audit" sap2010:WorkflowViewState.IdRef="Assign_12">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Successful")]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Successful")) + 1]</InArgument>
+                </Assign.Value>
+              </Assign>
+              <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_13">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Successful")]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Successful"))+cint(wbTakeScreenshot_Audit.Item("Successful"))]</InArgument>
+                </Assign.Value>
+              </Assign>
+              <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_14">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed"))+cint(wbTakeScreenshot_Audit.Item("Failed"))]</InArgument>
+                </Assign.Value>
+              </Assign>
+            </Sequence>
           </Sequence>
-        </ActivityAction>
-      </Catch>
-    </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d3FDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcVGFrZVNjcmVlbnNob3QueGFtbCtJA6YBDgIBAUsHjQESAgELlQELoQEWAgECTAlZFAIBL1oJfxQCAROAAQmMARQCAQyZAQ2fAR8CAQegAQ2gAewBAgEDTQtTHQIBMlQLWB0CATBfC2MfAgEsZAtvEAIBJXALdxQCASF4C3wQAgEcfQt9lQECARd+C36sAQIBFIQBC4oBHQIBD4sBC4sBkQECAQ2bAUmbAU8CAQqdAU6dAX0CAQmcAU6cAX8CAQigAXqgAekBAgEEUEdQVAIBN09FT1ACATVRRlFbAgEzVkZWXQIBMV+QAV+eAQIBLWQZZD4CASZmD20YAgEodTl1VAIBJHI6ck4CASJ4GXhPAgEdeg96vQECAR59QH1PAgEafYQBfZIBAgEYfnh+qQECARWGAUeGAVECARKIAUyIAXsCARGHAUyHAX0CARCLAXiLAY4BAgEOazprkAECAStoO2hIAgEpepYBeroBAgEf</sads:DebugSymbol.Symbol>
-  </TryCatch>
+        </Sequence>
+      </TryCatch.Try>
+      <TryCatch.Catches>
+        <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_3">
+          <ActivityAction x:TypeArguments="s:Exception">
+            <ActivityAction.Argument>
+              <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+            </ActivityAction.Argument>
+            <Sequence DisplayName="Exception Handling" sap2010:WorkflowViewState.IdRef="Sequence_26">
+              <Sequence DisplayName="wb Logging Failed" sap2010:WorkflowViewState.IdRef="Sequence_25">
+                <Sequence DisplayName="Manage Failed Audit" sap2010:WorkflowViewState.IdRef="Sequence_29">
+                  <Assign DisplayName="Increment Audit" sap2010:WorkflowViewState.IdRef="Assign_15">
+                    <Assign.To>
+                      <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
+                    </Assign.To>
+                    <Assign.Value>
+                      <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed")) + 1]</InArgument>
+                    </Assign.Value>
+                  </Assign>
+                  <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_16">
+                    <Assign.To>
+                      <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Successful")]</OutArgument>
+                    </Assign.To>
+                    <Assign.Value>
+                      <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Successful"))+cint(wbTakeScreenshot_Audit.Item("Successful"))]</InArgument>
+                    </Assign.Value>
+                  </Assign>
+                  <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_17">
+                    <Assign.To>
+                      <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
+                    </Assign.To>
+                    <Assign.Value>
+                      <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed"))+cint(wbTakeScreenshot_Audit.Item("Failed"))]</InArgument>
+                    </Assign.Value>
+                  </Assign>
+                </Sequence>
+                <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_9">
+                  <ui:AddLogFields.Fields>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbType">[wbTakeScreenshot_Type]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbParent">[wbTakeScreenshot_Parent]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbLevel">[wbTakeScreenshot_Level.ToString]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbStart">[wbTakeScreenshot_StartTime.ToString]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbTakeScreenshot_StartTime).TotalSeconds.ToString]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbTakeScreenshot_StartTime).TotalHours.ToString]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
+                  </ui:AddLogFields.Fields>
+                </ui:AddLogFields>
+                <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_13" Level="Info" Message="[&quot;Work Block &quot;+ wbTakeScreenshot_Type.toString + &quot; failed with exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
+              </Sequence>
+            </Sequence>
+          </ActivityAction>
+        </Catch>
+      </TryCatch.Catches>
+    </TryCatch>
+    <sads:DebugSymbol.Symbol>d3FDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcVGFrZVNjcmVlbnNob3QueGFtbE5LA+4BDgIBAU02TUYCAQlOTk7MAQIBCE80T0ECAQZQNFBDAgEEUTNRQQIBAlMF7AEQAgEKVQm3ARQCATC/AQ3oARgCAQtWC3oWAgFgewu2ARYCATHAAQ/nARoCAQxbDV8hAgF2YA1rEgIBb2wNcxYCAWt0DXgSAgFmeQ15lwECAWF8DYUBHwIBVYYBDZsBEgIBRJwBDbUBGAIBMsEBEdoBHAIBHtsBEeUBIwIBEuYBEeYBngICAQ1bkgFboAECAXdgG2BAAgFwYhFpGgIBcnE7cVYCAW5uPG5QAgFsdBt0UQIBZ3YRdr8BAgFoeUJ5UQIBZHmGAXmUAQIBYn9Jf2ICAV5+R35eAgFcgwFOgwGMAQIBW4EBSIEBbQIBWYIBToIBjgECAViAAUiAAWkCAVaGARuGAVgCAUWIARGPARwCAU6SARGZARwCAUedAQ+kARgCAT+lAQ+sARgCATmtAQ+0ARgCATPCARPJARwCASvKARPRARwCASXSARPZARwCAR/jAU3jAVMCAR3eAU3eAWYCARvdAUvdAWICARniAVLiAZABAgEY4AFM4AFxAgEW4QFS4QGSAQIBFd8BTN8BbQIBE+YBf+YBmwICAQ5nPGeSAQIBdWQ9ZEoCAXN2mAF2vAECAWmJARONASUCAVOOAROOAYsCAgFPkwETlwElAgFMmAETmAGbAgIBSKIBOaIBYAIBQp8BO58BWAIBQKoBOaoBjAECATynATunAVgCATqyATmyAYQBAgE2rwE7rwFUAgE0xwE9xwFgAgEuxAE/xAFYAgEszwE9zwGQAQIBKMwBP8wBXAIBJtcBPdcBiAECASLUAT/UAVgCASCLAU+LAVkCAVSOAYEBjgGIAgIBUJUBT5UBZwIBTZgBgQGYAZgCAgFJ</sads:DebugSymbol.Symbol>
+  </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="AddLogFields_1" sap:VirtualizedContainerService.HintSize="200,94">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_2" sap:VirtualizedContainerService.HintSize="200,64">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="336,322">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="TakeScreenshot_1" sap:VirtualizedContainerService.HintSize="464,68" />
-      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="464,208" />
-      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="464,60" />
-      <sap2010:ViewStateData Id="CreateDirectory_1" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="464,208">
+      <sap2010:ViewStateData Id="Assign_9" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_9" sap:VirtualizedContainerService.HintSize="464,208" />
+      <sap2010:ViewStateData Id="Assign_10" sap:VirtualizedContainerService.HintSize="464,60" />
+      <sap2010:ViewStateData Id="CreateDirectory_4" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="If_10" sap:VirtualizedContainerService.HintSize="464,208">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -201,57 +251,8 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="SaveImage_1" sap:VirtualizedContainerService.HintSize="464,92" />
-      <sap2010:ViewStateData Id="LogMessage_1" sap:VirtualizedContainerService.HintSize="464,91" />
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="336,258">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_5" sap:VirtualizedContainerService.HintSize="314,94">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_2" sap:VirtualizedContainerService.HintSize="314,91" />
-      <sap2010:ViewStateData Id="Sequence_4" sap:VirtualizedContainerService.HintSize="336,349">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="358,1133">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_6" sap:VirtualizedContainerService.HintSize="314,94">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_4" sap:VirtualizedContainerService.HintSize="314,91" />
-      <sap2010:ViewStateData Id="Sequence_5" sap:VirtualizedContainerService.HintSize="336,277">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="404,21">
+      <sap2010:ViewStateData Id="SaveImage_4" sap:VirtualizedContainerService.HintSize="464,92" />
+      <sap2010:ViewStateData Id="Sequence_20" sap:VirtualizedContainerService.HintSize="286,51">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -259,8 +260,131 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="418,1360" />
-      <sap2010:ViewStateData Id="TakeScreenshot_2" sap:VirtualizedContainerService.HintSize="458,1440" />
+      <sap2010:ViewStateData Id="AddLogFields_6" sap:VirtualizedContainerService.HintSize="264,169">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="AddLogFields_7" sap:VirtualizedContainerService.HintSize="314,64">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_11" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Sequence_21" sap:VirtualizedContainerService.HintSize="336,319">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="AddLogFields_8" sap:VirtualizedContainerService.HintSize="314,64">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_12" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Sequence_22" sap:VirtualizedContainerService.HintSize="336,319">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_11" sap:VirtualizedContainerService.HintSize="264,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_12" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_13" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_14" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_28" sap:VirtualizedContainerService.HintSize="264,384">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_23" sap:VirtualizedContainerService.HintSize="286,808">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_24" sap:VirtualizedContainerService.HintSize="308,1023">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_15" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_16" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_17" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="314,384">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="AddLogFields_9" sap:VirtualizedContainerService.HintSize="314,184">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_13" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Sequence_25" sap:VirtualizedContainerService.HintSize="336,863">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_26" sap:VirtualizedContainerService.HintSize="358,987">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Catch`1_3" sap:VirtualizedContainerService.HintSize="404,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TryCatch_2" sap:VirtualizedContainerService.HintSize="418,1250" />
+      <sap2010:ViewStateData Id="Sequence_27" sap:VirtualizedContainerService.HintSize="440,1461">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TakeScreenshot_2" sap:VirtualizedContainerService.HintSize="480,1661" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
