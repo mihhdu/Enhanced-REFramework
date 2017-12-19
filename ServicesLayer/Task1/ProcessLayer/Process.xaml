@@ -128,7 +128,7 @@
                       <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Finished with Exceptions</InArgument>
                     </ui:AddLogFields.Fields>
                   </ui:AddLogFields>
-                  <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_13" Level="Info" Message="[&quot;Work Block &quot;+ wbProcess_Type.toString + &quot; successful with exceptions&quot;]" />
+                  <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_13" Level="Warn" Message="[&quot;Work Block &quot;+ wbProcess_Type.toString + &quot; successful with exceptions&quot;]" />
                 </Sequence>
               </If.Else>
             </If>
@@ -174,52 +174,57 @@
                 </ui:SetTransactionStatus.Output>
               </ui:SetTransactionStatus>
               <Sequence DisplayName="wb Logging Failed" sap2010:WorkflowViewState.IdRef="Sequence_36">
-                <Sequence DisplayName="Manage Failed Audit" sap2010:WorkflowViewState.IdRef="Sequence_42">
-                  <Assign DisplayName="Increment Audit" sap2010:WorkflowViewState.IdRef="Assign_4">
-                    <Assign.To>
-                      <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
-                    </Assign.To>
-                    <Assign.Value>
-                      <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed")) + 1]</InArgument>
-                    </Assign.Value>
-                  </Assign>
-                  <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_5">
-                    <Assign.To>
-                      <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Successful")]</OutArgument>
-                    </Assign.To>
-                    <Assign.Value>
-                      <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Successful"))+cint(wbProcess_Audit.Item("Successful"))]</InArgument>
-                    </Assign.Value>
-                  </Assign>
-                  <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_6">
-                    <Assign.To>
-                      <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
-                    </Assign.To>
-                    <Assign.Value>
-                      <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed"))+cint(wbProcess_Audit.Item("Failed"))]</InArgument>
-                    </Assign.Value>
-                  </Assign>
-                </Sequence>
-                <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_21">
-                  <ui:AddLogFields.Fields>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbType">[wbProcess_Type]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbParent">[wbProcess_Parent]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbLevel">[wbProcess_Level.ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbStart">[wbProcess_StartTime.ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbProcess_StartTime).TotalSeconds.ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbProcess_StartTime).TotalHours.ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
-                  </ui:AddLogFields.Fields>
-                </ui:AddLogFields>
-                <ui:AddLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Log Fields">
-                  <ui:AddLogFields.Fields>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbTransactionID">[datetime.Now.ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbTransactionField1">[string.Empty]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="wbTransactionField2">[string.Empty]</InArgument>
-                  </ui:AddLogFields.Fields>
-                  <sap2010:WorkflowViewState.IdRef>AddLogFields_24</sap2010:WorkflowViewState.IdRef>
-                </ui:AddLogFields>
-                <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_14" Level="Info" Message="[&quot;Work Block &quot;+ wbProcess_Type.toString + &quot; failed with exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
+                <If Condition="[io_RetryNumber &gt;= cint(in_Config.Item(&quot;MaxRetryNumber&quot;))]" DisplayName="If this is the last try log Error, else log warning" sap2010:WorkflowViewState.IdRef="If_3">
+                  <If.Then>
+                    <Sequence DisplayName="If this is the last try log Error, else log warning" sap2010:WorkflowViewState.IdRef="Sequence_45">
+                      <Sequence DisplayName="Manage Failed Audit" sap2010:WorkflowViewState.IdRef="Sequence_44">
+                        <Assign DisplayName="Increment Audit" sap2010:WorkflowViewState.IdRef="Assign_10">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed")) + 1]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                        <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_11">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Successful")]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Successful"))+cint(wbProcess_Audit.Item("Successful"))]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                        <Assign DisplayName="Add Internal Audit to External" sap2010:WorkflowViewState.IdRef="Assign_12">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Object">[io_Audit.Item("Failed")]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Int32">[cint(io_Audit.Item("Failed"))+cint(wbProcess_Audit.Item("Failed"))]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                      </Sequence>
+                      <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_26">
+                        <ui:AddLogFields.Fields>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbType">[wbProcess_Type]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbParent">[wbProcess_Parent]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbLevel">[wbProcess_Level.ToString]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbStart">[wbProcess_StartTime.ToString]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbDurationSec">[now.Subtract(wbProcess_StartTime).TotalSeconds.ToString]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbDurationHrs">[now.Subtract(wbProcess_StartTime).TotalHours.ToString]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
+                        </ui:AddLogFields.Fields>
+                      </ui:AddLogFields>
+                      <ui:AddLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_27">
+                        <ui:AddLogFields.Fields>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbTransactionID">[datetime.Now.ToString]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbTransactionField1">[string.Empty]</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="wbTransactionField2">[string.Empty]</InArgument>
+                        </ui:AddLogFields.Fields>
+                      </ui:AddLogFields>
+                      <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_16" Level="Error" Message="[&quot;Work Block &quot;+ wbProcess_Type.toString + &quot; failed with exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
+                    </Sequence>
+                  </If.Then>
+                </If>
               </Sequence>
               <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_3" />
             </Sequence>
@@ -274,15 +279,14 @@
                     <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
                   </ui:AddLogFields.Fields>
                 </ui:AddLogFields>
-                <ui:AddLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Log Fields">
+                <ui:AddLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_25">
                   <ui:AddLogFields.Fields>
                     <InArgument x:TypeArguments="x:String" x:Key="wbTransactionID">[datetime.Now.ToString]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="wbTransactionField1">[string.Empty]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="wbTransactionField2">[string.Empty]</InArgument>
                   </ui:AddLogFields.Fields>
-                  <sap2010:WorkflowViewState.IdRef>AddLogFields_25</sap2010:WorkflowViewState.IdRef>
                 </ui:AddLogFields>
-                <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_15" Level="Info" Message="[&quot;Work Block &quot;+ wbProcess_Type.toString + &quot; failed with exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
+                <ui:LogMessage DisplayName="Log Message" sap2010:WorkflowViewState.IdRef="LogMessage_15" Level="Error" Message="[&quot;Work Block &quot;+ wbProcess_Type.toString + &quot; failed with exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
               </Sequence>
               <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_4" />
             </Sequence>
@@ -290,7 +294,7 @@
         </Catch>
       </TryCatch.Catches>
     </TryCatch>
-    <sads:DebugSymbol.Symbol>d21DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcUHJvY2Vzcy54YW1saU0DpgIOAgEBTzZPRgIBCVBOUMwBAgEIUTRRQQIBBlI0UkMCAQRTM1NBAgECVQWkAhACAQpXCaIBFAIBZaoBDeEBGAIBNukBDaACGAIBC1gLXhYDAZcBXwuhARYCAWarAQ+vASkCAWCwAQ/fARoCATjgAQ/gAUYCATfqAQ+eAhoCAQ2fAg+fAkYCAQxZDV0nAwGYAWANaR8DAYwBag1wHwMBiAFxDYYBEgIBeYcBDaABGAIBZ6sBjQKrAaICAgFjqwHDAqsB2QICAWGxARHKARwCAU7LARHVASMCAULWARHdASMCAT7eARHeAZcCAgE56wERhAIcAgEkhQIRiQIrAgEgigIRlAIjAgEUlQIRnAIjAgEQnQIRnQKXAgIBDlm0AlnKAgMBmQFjSWNbAwGVAWJHYlcDAZMBZ05nhQEDAZIBZUhlZgMBkAFmTmaHAQMBjwFkSGRiAwGNAW5UbmIDAYsBbVRtYgMBigFsUGxnAwGJAXEbcVECAXpzEXocAwGCAX0RhAEcAgF8iAEPjwEYAgF0kAEPlwEYAgFumAEPnwEYAgFosgETuQEcAgFbugETwQEcAgFVwgETyQEcAgFP0wFN0wFTAgFNzgFNzgFfAgFLzQFLzQFbAgFJ0gFS0gGJAQIBSNABTNABagIBRtEBUtEBiwECAUXPAUzPAWYCAUPaAVjaAWYCAUHZAVjZAWYCAUDYAVTYAWsCAT/eAX/eAZQCAgE67AET8wEcAgEx9AET+wEcAgEr/AETgwIcAgElhQKOAoUCowICASOFAsQChQLaAgIBIZICTZICUwIBH40CTY0CXwIBHYwCS4wCWwIBG5ECUpECiQECARqPAkyPAmoCARiQAlKQAosBAgEXjgJMjgJmAgEVmQJYmQJmAgETmAJYmAJmAgESlwJUlwJrAgERnQJ/nQKUAgIBD3QTeCUDAYYBeRN50gEDAYMBfhOCASUDAYABgwETgwHiAQIBfY0BOY0BYAIBd4oBO4oBWAIBdZUBOZUBhQECAXGSATuSAVgCAW+dATmdAX0CAWuaATuaAVQCAWm3AT23AWACAV60AT+0AVgCAVy/AT2/AYkBAgFYvAE/vAFcAgFWxwE9xwGBAQIBUsQBP8QBWAIBUPEBPfEBYAIBNO4BP+4BWAIBMvkBPfkBiQECAS72AT/2AVwCASyBAj2BAoEBAgEo/gE//gFYAgEmdk92WQMBhwF5gQF5zwEDAYQBgAFPgAFnAwGBAYMBgQGDAd8BAgF+</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d4EBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMVxQcm9jZXNzTGF5ZXJcUHJvY2Vzcy54YW1sbE0DqgIOAgEBTzZPRgIBCVBOUMwBAgEIUTRRQQIBBlI0UkMCAQRTM1NBAgECVQWoAhACAQpXCaIBFAIBaqoBDeYBGAIBNu4BDaQCGAIBC1gLXhYDAZwBXwuhARYCAWurAQ+vASkCAWWwAQ/kARoCATjlAQ/lAUYCATfvAQ+iAhoCAQ2jAg+jAkYCAQxZDV0nAwGdAWANaR8DAZEBag1wHwMBjQFxDYYBEgIBfocBDaABGAIBbKsBjQKrAaICAgFoqwHDAqsB2QICAWaxARHjARYCATnwARGJAhwCASSKAhGOAisCASCPAhGZAiMCARSaAhGgAiMCARChAhGhApgCAgEOWbQCWcoCAwGeAWNJY1sDAZoBYkdiVwMBmAFnTmeFAQMBlwFlSGVmAwGVAWZOZocBAwGUAWRIZGIDAZIBblRuYgMBkAFtVG1iAwGPAWxQbGcDAY4BcRtxUQIBf3MRehwDAYcBfRGEARwDAYEBiAEPjwEYAgF5kAEPlwEYAgFzmAEPnwEYAgFtsQEfsQFoAgE6swEV4QEgAgE98QET+AEcAgEx+QETgAIcAgErgQITiAIcAgEligKOAooCowICASOKAsQCigLaAgIBIZcCTZcCUwIBH5ICTZICXwIBHZECS5ECWwIBG5YCUpYCiQECARqUAkyUAmoCARiVAlKVAosBAgEXkwJMkwJmAgEVngJYngJmAgETnQJYnQJmAgESnAJUnAJrAgERoQKAAaEClQICAQ90E3glAwGLAXkTedIBAwGIAX4TggElAwGFAYMBE4MB4gEDAYIBjQE5jQFgAgF8igE7igFYAgF6lQE5lQGFAQIBdpIBO5IBWAIBdJ0BOZ0BfQIBcJoBO5oBVAIBbrQBF80BIgIBU84BF9gBKQIBR9kBF98BKQIBQ+ABF+ABngICAT72AT32AWACATTzAT/zAVgCATL+AT3+AYkBAgEu+wE/+wFcAgEshgI9hgKBAQIBKIMCP4MCWAIBJnZPdlkDAYwBeYEBec8BAwGJAYABT4ABZwMBhgGDAYEBgwHfAQMBgwG1ARm8ASICAWC9ARnEASICAVrFARnMASICAVTWAVPWAVkCAVLRAVPRAWUCAVDQAVHQAWECAU7VAVjVAY8BAgFN0wFS0wFwAgFL1AFY1AGRAQIBStIBUtIBbAIBSN0BXt0BbAIBRtwBXtwBbAIBRdsBWtsBcQIBROABhgHgAZsCAgE/ugFDugFmAgFjtwFFtwFeAgFhwgFDwgGPAQIBXb8BRb8BYgIBW8oBQ8oBhwECAVfHAUXHAV4CAVU=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -379,7 +383,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_35" sap:VirtualizedContainerService.HintSize="741,1695">
+      <sap2010:ViewStateData Id="Sequence_35" sap:VirtualizedContainerService.HintSize="741,359">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -387,17 +391,17 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="SetTransactionStatus_7" sap:VirtualizedContainerService.HintSize="336,49">
+      <sap2010:ViewStateData Id="SetTransactionStatus_7" sap:VirtualizedContainerService.HintSize="486,49">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_5" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_6" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Sequence_42" sap:VirtualizedContainerService.HintSize="314,51">
+      <sap2010:ViewStateData Id="Assign_10" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_11" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_12" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_44" sap:VirtualizedContainerService.HintSize="314,51">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -405,22 +409,29 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_21" sap:VirtualizedContainerService.HintSize="314,184">
+      <sap2010:ViewStateData Id="AddLogFields_26" sap:VirtualizedContainerService.HintSize="314,184">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_24" sap:VirtualizedContainerService.HintSize="314,94">
+      <sap2010:ViewStateData Id="AddLogFields_27" sap:VirtualizedContainerService.HintSize="314,94">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_14" sap:VirtualizedContainerService.HintSize="314,91" />
-      <sap2010:ViewStateData Id="Sequence_36" sap:VirtualizedContainerService.HintSize="336,664">
+      <sap2010:ViewStateData Id="LogMessage_16" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Sequence_45" sap:VirtualizedContainerService.HintSize="336,664">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="464,812">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -428,8 +439,16 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Rethrow_3" sap:VirtualizedContainerService.HintSize="336,22" />
-      <sap2010:ViewStateData Id="Sequence_37" sap:VirtualizedContainerService.HintSize="358,939">
+      <sap2010:ViewStateData Id="Sequence_36" sap:VirtualizedContainerService.HintSize="486,936">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Rethrow_3" sap:VirtualizedContainerService.HintSize="486,22" />
+      <sap2010:ViewStateData Id="Sequence_37" sap:VirtualizedContainerService.HintSize="508,1211">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -511,7 +530,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="476,1468" />
+      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="476,1508" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
