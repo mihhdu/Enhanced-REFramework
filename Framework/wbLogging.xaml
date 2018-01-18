@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="wbTemplate" this:wbTemplate.in_LogLevel="0" this:wbTemplate.in_ChildAudit="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="wbTemplate" this:wbTemplate.in_LogLevel="0" this:wbTemplate.in_ChildAudit="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" this:wbTemplate.in_wbFinalExec="True"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
@@ -22,6 +22,7 @@
     <x:Property Name="io_ParentAudit" Type="InOutArgument(scg:Dictionary(x:String, x:Object))" />
     <x:Property Name="in_SuppressLogging" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbStatusSuccessful" Type="InArgument(x:Boolean)" />
+    <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -77,7 +78,7 @@
       <AssemblyReference>System.Runtime.Serialization</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
-  <Sequence sap2010:Annotation.AnnotationText="The workflow logs the outcome of the execution of a workblock. The in_LogMessage is logged with a severity corresponding to the value of in_LogLevel. Thus, in_LogLevel can take the following values corresponding to the following severities:&#xA;0 = Trace&#xA;1 = Info &#xA;2 = Warning&#xA;3 = Error&#xA;4 = Fatal&#xA;Be sure to not pass a value lower than 0 or higher than 4 to in_LogLevel, as this will cause logging to be skipped. If you do not pass any value, the logging will be done at level 0, that is to say &quot;Info&quot;. &#xA;&#xA;The following log fields are added:&#xA;Add Hierarchy Log Fields: &#xA;wbType - Name of Current Workblock&#xA;wbParent - Name of Parent Workblock&#xA;wbLevel - Level of current workblock (typically level of Parent Workblock + 1)&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart - the timestamp of the start of execution&#xA;wbDurationSec - duration of execution in seconds&#xA;wbDurationHrs - duration of execution in hours&#xA;wbStatus - If the current workblock is successful and all child workblocks are also successful then set &quot;Successful&quot;, If the current workblock is successful and some child workblocks have failed then set &quot;Finished with Exceptions&quot;, if currect workblock failed then &quot;Failed&quot;" DisplayName="wbLogging" sap2010:WorkflowViewState.IdRef="Sequence_9">
+  <Sequence sap2010:Annotation.AnnotationText="The workflow logs the outcome of the execution of a workblock. The in_LogMessage is logged with a severity corresponding to the value of in_LogLevel. Thus, in_LogLevel can take the following values corresponding to the following severities:&#xA;0 = Trace&#xA;1 = Info &#xA;2 = Warning&#xA;3 = Error&#xA;4 = Fatal&#xA;Be sure to not pass a value lower than 0 or higher than 4 to in_LogLevel, as this will cause logging to be skipped. If you do not pass any value, the logging will be done at level 0, that is to say &quot;Info&quot;. &#xA;&#xA;The following log fields are added:&#xA;Add Hierarchy Log Fields: &#xA;wbType - Name of Current Workblock&#xA;wbParent - Name of Parent Workblock&#xA;wbLevel - Level of current workblock (typically level of Parent Workblock + 1)&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart - the timestamp of the start of execution&#xA;wbDurationSec - duration of execution in seconds&#xA;wbDurationHrs - duration of execution in hours&#xA;wbStatus - If the current workblock is successful and all child workblocks are also successful then set &quot;Successful&quot;, If the current workblock is successful and some child workblocks have failed then set &quot;Finished with Exceptions&quot;, if currect workblock failed then &quot;Failed&quot;&#xD;&#xA;wbFinalExec - If the current workblock is successful or is at the last attempt and all parents are at the last attempt, wbFinalExec is true, else it is false" DisplayName="wbLogging" sap2010:WorkflowViewState.IdRef="Sequence_9">
     <Sequence.Variables>
       <Variable x:TypeArguments="x:String" Name="wbStatus" />
     </Sequence.Variables>
@@ -170,7 +171,7 @@
     <If Condition="[Not(in_SuppressLogging) AndAlso &#xA;(in_LogLevel &gt;= 0 And in_LogLevel &lt;= 4) AndAlso&#xA;in_LogMessage IsNot Nothing]" DisplayName="If not Suppressed and config is correct, log" sap2010:WorkflowViewState.IdRef="If_2">
       <If.Then>
         <Sequence DisplayName="Log messages and add fields" sap2010:WorkflowViewState.IdRef="Sequence_22">
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_13">
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus&#xD;&#xA;wbFinalExec" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_13">
             <ui:AddLogFields.Fields>
               <InArgument x:TypeArguments="x:String" x:Key="wbType">[in_wbType]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="wbParent">[in_wbParent]</InArgument>
@@ -179,6 +180,7 @@
               <InArgument x:TypeArguments="x:Double" x:Key="wbDurationSec">[now.Subtract(in_wbStart).TotalSeconds]</InArgument>
               <InArgument x:TypeArguments="x:Double" x:Key="wbDurationHrs">[now.Subtract(in_wbStart).TotalHours]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="wbStatus">[wbStatus]</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="wbFinalExec">[in_wbFinalExec]</InArgument>
             </ui:AddLogFields.Fields>
           </ui:AddLogFields>
           <Switch x:TypeArguments="x:Int32" DisplayName="Log message in accordance with LogLevel value" Expression="[in_LogLevel]" sap2010:WorkflowViewState.IdRef="Switch`1_2">
@@ -194,7 +196,7 @@
         </Sequence>
       </If.Then>
     </If>
-    <sads:DebugSymbol.Symbol>d2xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JMb2dnaW5nLnhhbWw9AX4B+wEBAwFcAV4BAlADxgEOAgEBVAVfCgIBVmAFlwEKAgE4mAEFqQEQAgErqgEFxAEKAgECVBNUMAIBV1YJXRICAVlgE2AsAgE5YgmBARQCAUWEAQmVARQCATuZAQegARACATKhAQeoARACASyqAROqAZEBAgEDrAEJwgEUAgEIW05btgECAVxYT1hfAgFaYwt4EAIBS3kLgAEUAgFGhQELjAEUAgFBjQELlAEUAgE8ngExngGBAQIBNZsBM5sBVgIBM6YBMaYBeQIBL6MBM6MBUgIBLa0BC7cBHQIBHrgBC8EBFAIBCWMZY00CAUxlD2wYAgFSbw92GAIBTn42fmMCAUl7N3taAgFHigE2igE8AgFEhwE3hwFBAgFCkgE1kgFeAgE/jwE3jwFWAgE9tQFHtQFRAgEpsAFHsAFUAgEnrwFFrwFQAgEltAFMtAFxAgEksgFGsgFbAgEiswFMswFzAgEhsQFFsQFRAgEfuAF0uAGDAQIBCrwBDbwBmgECARu9AQ29AZkBAgEYvgENvgGZAQIBFb8BDb8BmgECARLAAQ3AAZoBAgEPugEPugGRAQIBDGo6akQCAVVnO2dFAgFTdDp0UgIBUXE7cUUCAU+8AYYBvAGXAQIBHL0BhQG9AZYBAgEZvgGFAb4BlgECARa/AYYBvwGXAQIBE8ABhgHAAZcBAgEQugF9ugGOAQIBDQ==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d2xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JMb2dnaW5nLnhhbWw/AX4B+wEBBAFcAV4BAwGcAgGhAgECUQPIAQ4CAQFVBWAKAgFYYQWYAQoCATqZAQWqARACAS2rAQXGAQoCAQJVE1UwAgFZVwleEgIBW2ETYSwCATtjCYIBFAIBR4UBCZYBFAIBPZoBB6EBEAIBNKIBB6kBEAIBLqsBE6sBkQECAQOtAQnEARQCAQhcTly2AQIBXllPWV8CAVxkC3kQAgFNeguBARQCAUiGAQuNARQCAUOOAQuVARQCAT6fATGfAYEBAgE3nAEznAFWAgE1pwExpwF5AgExpAEzpAFSAgEvrgELuQEdAgEeugELwwEUAgEJZBlkTQIBTmYPbRgCAVRwD3cYAgFQfzZ/YwIBS3w3fFoCAUmLATaLATwCAUaIATeIAUECAUSTATWTAV4CAUGQATeQAVYCAT+2AUe2AVECASuxAUexAVQCASmwAUWwAVACASe1AUy1AXECASazAUazAVsCASS3AUu3AVsCASK0AUy0AXMCASGyAUWyAVECAR+6AXS6AYMBAgEKvgENvgGaAQIBG78BDb8BmQECARjAAQ3AAZkBAgEVwQENwQGaAQIBEsIBDcIBmgECAQ+8AQ+8AZEBAgEMazprRAIBV2g7aEUCAVV1OnVSAgFTcjtyRQIBUb4BhgG+AZcBAgEcvwGFAb8BlgECARnAAYUBwAGWAQIBFsEBhgHBAZcBAgETwgGGAcIBlwECARC8AX28AY4BAgEN</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -252,7 +254,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_13" sap:VirtualizedContainerService.HintSize="476.8,194.4">
+      <sap2010:ViewStateData Id="AddLogFields_13" sap:VirtualizedContainerService.HintSize="476.8,210.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -265,7 +267,7 @@
       <sap2010:ViewStateData Id="LogMessage_16" sap:VirtualizedContainerService.HintSize="313.6,92.8" />
       <sap2010:ViewStateData Id="LogMessage_17" sap:VirtualizedContainerService.HintSize="313.6,92.8" />
       <sap2010:ViewStateData Id="LogMessage_18" sap:VirtualizedContainerService.HintSize="313.6,92.8" />
-      <sap2010:ViewStateData Id="Switch`1_2" sap:VirtualizedContainerService.HintSize="476.8,374.4">
+      <sap2010:ViewStateData Id="Switch`1_2" sap:VirtualizedContainerService.HintSize="476.8,235.2">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -273,14 +275,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_22" sap:VirtualizedContainerService.HintSize="499.2,732.8">
+      <sap2010:ViewStateData Id="Sequence_22" sap:VirtualizedContainerService.HintSize="499.2,609.6">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="822.4,886.4">
+      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="822.4,763.2">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -288,7 +290,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="844.8,2580">
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="844.8,2472.8">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -296,7 +298,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="884.8,2660" />
+      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="884.8,2552.8" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

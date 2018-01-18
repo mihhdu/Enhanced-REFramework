@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="CloseAllApplications"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="CloseAllApplications" this:CloseAllApplications.in_wbFinalExec="True"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
@@ -8,6 +8,7 @@
  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
  xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
  xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib"
+ xmlns:this="clr-namespace:"
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
@@ -15,6 +16,7 @@
     <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
     <x:Property Name="in_wbLevel" Type="InArgument(x:Int32)" />
     <x:Property Name="io_Audit" Type="InOutArgument(scg:Dictionary(x:String, x:Object))" />
+    <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -68,13 +70,14 @@
       <AssemblyReference>Microsoft.VisualStudio.Services.Common</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
-  <TryCatch sap2010:Annotation.AnnotationText="##Business Process Layer##&#xD;&#xA;Description: Here all working applications will be soft closed&#xA;&#xA;Pre Condition: N/A&#xA;Post Condtion: Applications closed" DisplayName="wbCloseAllApplications" sap2010:WorkflowViewState.IdRef="TryCatch_3">
+  <TryCatch sap2010:Annotation.AnnotationText="##Business Process Layer##&#xA;Description: Here all working applications will be soft closed&#xA;&#xA;Pre Condition: N/A&#xA;Post Condtion: Applications closed" DisplayName="wbCloseAllApplications" sap2010:WorkflowViewState.IdRef="TryCatch_3">
     <TryCatch.Variables>
       <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbCloseAllApplications_StartTime" />
       <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" Name="wbCloseAllApplications_Audit" />
       <Variable x:TypeArguments="x:String" Default="[in_wbType]" Name="wbCloseAllApplications_Type" />
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbCloseAllApplications_Parent" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbCloseAllApplications_Level" />
+      <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbCloseAllApplications_FinalExec" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence sap2010:Annotation.AnnotationText="Close All Applications work block." DisplayName="Try processing wbCloseAllApplications" sap2010:WorkflowViewState.IdRef="Sequence_27">
@@ -92,6 +95,7 @@
               <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">True</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbCloseAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -115,13 +119,14 @@
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbCloseAllApplications_Type]</InArgument>
                   <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbCloseAllApplications_Level]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbCloseAllApplications_Parent]</InArgument>
-                  <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">3</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbCloseAllApplications_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
+                  <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">2</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbCloseAllApplications_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source+ ". Calling kill process to recover."]</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbCloseAllApplications_StartTime]</InArgument>
                   <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbCloseAllApplications_Audit]</InArgument>
                   <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
-                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
+                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
+                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbCloseAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
@@ -129,7 +134,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d5MBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMVxQcm9jZXNzTGF5ZXJcU2xhdmVDbG9zZUFsbEFwcGxpY2F0aW9ucy54YW1sJUcDhQEOAgEBSTZJRgIBIkpOSswBAgEhSzRLQQIBH0w0TEMCAR1NM01BAgEbUAdiEgIBI2oLgAEWAgECUQlRjAECAThSCWEUAgEkaw1vJQIBGXANfxgCAQNTC2AjAgEla8UBa+kBAgEacQ9+JwIBBFdKV2kCATZVSFVlAgE0XlVeWQIBM1tmW4QBAgExXVJdVgIBMFpLWm0CAS5ZTFmRAQIBLFhJWEoCAStTvAFT1gECASpWSFZmAgEoXGpcdAIBJnVOdW0CARdzTHNpAgEVfFl8XgIBFHlqeYgBAgESe1Z7WwIBEXhPeHECAQ93UHfSAQIBC3ZNdk4CAQpxwAFx2gECAQl0THRqAgEHem56eAIBBQ==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d5MBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMVxQcm9jZXNzTGF5ZXJcU2xhdmVDbG9zZUFsbEFwcGxpY2F0aW9ucy54YW1sKQFzAXgBAkkDigEOAgEBSzZLRgIBJkxOTMwBAgElTTRNQQIBI040TkMCASFPM09BAgEfUDVQOwIBHlMHZhICASduC4UBFgIBAlQJVIwBAgE/VQllFAIBKG8NcyUCARx0DYQBGAIBA1YLZCMCASlvxQFv6QECAR11D4MBJwIBBFpKWmkCAT1YSFhlAgE7YVVhWQIBOl5mXoQBAgE4YFJgVgIBN11LXW0CATVcTFyRAQIBM1tJW0oCATJiTmKDAQIBL1a8AVbWAQIBLllIWWYCASxfal90AgEqeU55bQIBGndMd2kCARiAAVmAAV0CARd9an2IAQIBFX9Wf1sCARR8T3xxAgESe1B7+AECAQ56TXpOAgENgQFSgQGHAQIBCnXAAXXaAQIBCXhMeGoCAQd+bn54AgEF</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -171,7 +176,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="358.4,556.8">
+      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="358.4,465.6">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
