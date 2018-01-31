@@ -17,6 +17,8 @@
     <x:Property Name="in_wbLevel" Type="InArgument(x:Int32)" />
     <x:Property Name="io_Audit" Type="InOutArgument(scg:Dictionary(x:String, x:Object))" />
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
+    <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
+    <x:Property Name="in_Config" Type="InArgument(scg:Dictionary(x:String, x:Object))" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -45,6 +47,7 @@
       <x:String>UiPath.Core</x:String>
       <x:String>UiPath.Framework.Activities</x:String>
       <x:String>System.Windows.Markup</x:String>
+      <x:String>Microsoft.VisualBasic.CompilerServices</x:String>
     </sco:Collection>
   </TextExpression.NamespacesForImplementation>
   <TextExpression.ReferencesForImplementation>
@@ -93,9 +96,11 @@
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbCloseAllApplications_StartTime]</InArgument>
               <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbCloseAllApplications_Audit]</InArgument>
               <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
-              <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">True</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">[if(in_Config.Item("wbCloseAllApplications_SuppressSuccessful").ToString.Trim.ToLower = "true", true, false)]</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbCloseAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
+              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -140,6 +145,8 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">[wbProcess_ExceptionHandlerSuccess]</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbCloseAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">[if(wbProcess_ExceptionHandlerSuccess, string.Empty, "AppEx")]</InArgument>
+                  <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
@@ -152,7 +159,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d3pDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcQ2xvc2VBbGxBcHBsaWNhdGlvbnMueGFtbDEBcwF4AQJJA5wBDgIBAUs2S0YCATlMTkyABQIBNE00TUECATJONE5DAgEwTzNPQQIBLlA1UDsCAS1TB2YSAgE6bguXARYCAQJUCVSMAQIBUlUJZRQCATtwPXBEAgEDcg2AARgCASaBAQ2RARgCAQiSAQ2WARICAQRWC2QjAgE8cw93JwIBK3gPfxgCASeCAQ+QAScCAQmSARuSAUUCAQWUARGUAUgCAQdaSlppAgFQWEhYZQIBTmFVYVkCAU1eZl6EAQIBS2BSYFYCAUpdS11tAgFIXExckQECAUZbSVtKAgFFYk5igwECAUJWvAFW1gECAUFZSFlmAgE/X2pfdAIBPXPHAXPrAQIBLH07fT8CASp6PHpfAgEohgFOhgFtAgEkhAFMhAFpAgEijQFZjQF8AgEgigFqigGIAQIBHowBVowBWwIBHYkBT4kBcQIBG4gBUIgBlQICARaHAU2HAboBAgESjgFSjgGHAQIBD4IBwAGCAdoBAgEOhQFMhQFqAgEMiwFuiwF4AgEK</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3pDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcQ2xvc2VBbGxBcHBsaWNhdGlvbnMueGFtbDQBcwF4AQJMA6MBDgIBAU42TkYCAT1PTk+ABQIBOFA0UEECATZRNFFDAgE0UjNSQQIBMlM1UzsCATFWB2sSAgE+cwueARYCAQJXCVeMAQIBWVgJahQCAT91PXVEAgEDdw2FARgCASqGAQ2YARgCAQiZAQ2dARICAQRZC2kjAgFAeA98JwIBL30PhAEYAgErhwEPlwEnAgEJmQEbmQFFAgEFmwERmwFIAgEHXUpdaQIBV1tIW2UCAVVkVWRZAgFUYWZhhAECAVJjUmO/AQIBUGBLYG0CAU5nUWdjAgFMX0xfkQECAUpeSV5KAgFJZU5lgwECAUZZvAFZ1gECAUVcSFxmAgFDYmpidAIBQXjHAXjrAQIBMIIBO4IBPwIBLn88f18CASyLAU6LAW0CASiJAUyJAWkCASaSAVmSAXwCASSPAWqPAYgBAgEikQFWkQFbAgEhjgFPjgFxAgEflQFVlQFnAgEdjQFQjQGVAgIBGIwBTYwBugECARSTAVKTAYcBAgERlAFVlAGTAQIBD4cBwAGHAdoBAgEOigFMigFqAgEMkAFukAF4AgEK</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -165,7 +172,7 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="InvokeWorkflowFile_4" sap:VirtualizedContainerService.HintSize="313.6,88" />
-      <sap2010:ViewStateData Id="Sequence_26" sap:VirtualizedContainerService.HintSize="336,352.8">
+      <sap2010:ViewStateData Id="Sequence_26" sap:VirtualizedContainerService.HintSize="336,304.8">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -174,7 +181,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_27" sap:VirtualizedContainerService.HintSize="358.4,608.8">
+      <sap2010:ViewStateData Id="Sequence_27" sap:VirtualizedContainerService.HintSize="358.4,626.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -206,29 +213,29 @@
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="Rethrow_1" sap:VirtualizedContainerService.HintSize="200,22.4" />
       <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="464,211.2" />
-      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="486.4,1062.4">
+      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="486.4,1033.6">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_4" sap:VirtualizedContainerService.HintSize="492.8,1132.8">
+      <sap2010:ViewStateData Id="Catch`1_4" sap:VirtualizedContainerService.HintSize="403.2,22.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_3" sap:VirtualizedContainerService.HintSize="507.2,1391.2">
+      <sap2010:ViewStateData Id="TryCatch_3" sap:VirtualizedContainerService.HintSize="417.6,951.2">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="CloseAllApplications_1" sap:VirtualizedContainerService.HintSize="547.2,1591.2" />
+      <sap2010:ViewStateData Id="CloseAllApplications_1" sap:VirtualizedContainerService.HintSize="457.6,1031.2" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

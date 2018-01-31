@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="wbTemplate" this:wbTemplate.in_LogLevel="0" this:wbTemplate.in_ChildAudit="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" this:wbTemplate.in_wbFinalExec="True"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="wbTemplate" this:wbTemplate.in_LogLevel="0" this:wbTemplate.in_ChildAudit="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" this:wbTemplate.in_wbFinalExec="True" this:wbTemplate.in_wbExceptionType="[string.Empty]"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
@@ -23,6 +23,8 @@
     <x:Property Name="in_SuppressLogging" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbStatusSuccessful" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
+    <x:Property Name="in_wbExceptionType" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -180,7 +182,7 @@
     <If Condition="[Not(in_SuppressLogging) AndAlso &#xA;(in_LogLevel &gt;= 0 And in_LogLevel &lt;= 4) AndAlso&#xA;in_LogMessage IsNot Nothing]" DisplayName="If not Suppressed and config is correct, log" sap2010:WorkflowViewState.IdRef="If_2">
       <If.Then>
         <Sequence DisplayName="Log messages and add fields" sap2010:WorkflowViewState.IdRef="Sequence_22">
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus&#xA;wbFinalExec" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_13">
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add Hierarchy Log Fields: &#xA;wbType&#xA;wbParent&#xA;wbLevel&#xA;&#xA;Add Execution Log Fields: &#xA;wbStart&#xA;wbDurationSec&#xA;wbDurationHrs&#xA;wbStatus&#xA;wbFinalExec&#xA;wbExceptionType" DisplayName="Add wb Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_13">
             <ui:AddLogFields.Fields>
               <InArgument x:TypeArguments="x:String" x:Key="wbType">[in_wbType]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="wbParent">[in_wbParent]</InArgument>
@@ -190,6 +192,8 @@
               <InArgument x:TypeArguments="x:Double" x:Key="wbDurationHrs">[now.Subtract(in_wbStart).TotalHours]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="wbStatus">[io_ParentAudit.Item("wbStatus").ToString]</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="wbFinalExec">[in_wbFinalExec]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbExceptionType">[in_wbExceptionType]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbParentStart">[in_wbParentStart.ToString]</InArgument>
             </ui:AddLogFields.Fields>
           </ui:AddLogFields>
           <Switch x:TypeArguments="x:Int32" DisplayName="Log message in accordance with LogLevel value" Expression="[in_LogLevel]" sap2010:WorkflowViewState.IdRef="Switch`1_2">
@@ -221,7 +225,7 @@
         <InArgument x:TypeArguments="x:Object">[now.Subtract(in_wbStart).TotalHours]</InArgument>
       </Assign.Value>
     </Assign>
-    <sads:DebugSymbol.Symbol>d2xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JMb2dnaW5nLnhhbWxEAX4B+wEBBAFcAV4BAwGcAgGhAgECUQPhAQ4CAQFSBWkKAgFgagWhAQoCAUKiAQWzARACATW0AQXPAQoCAQrQAQXXAQ4CAQbYAQXfAQ4CAQJSE1IwAgFhVAlnEgIBY2oTaiwCAUNsCYsBFAIBT44BCZ8BFAIBRaMBB6oBEAIBPKsBB7IBEAIBNrQBE7QBkQECAQu2AQnNARQCARDVATDVAVcCAQnSATHSAVcCAQfdATDdAVUCAQXaATHaAVkCAQNWT1ZfAgFkbQuCARACAVWDAQuKARQCAVCPAQuWARQCAUuXAQueARQCAUaoATGoAYEBAgE/pQEzpQFWAgE9sAExsAF5AgE5rQEzrQFSAgE3twELwgEdAgEmwwELzAEUAgERbRltTQIBVm8PdhgCAVx5D4ABGAIBWIgBNogBYwIBU4UBN4UBWgIBUZQBNpQBQAIBTpEBN5EBWAIBTJwBNZwBXgIBSZkBN5kBVgIBR78BR78BcQIBM7oBR7oBVAIBMbkBRbkBUAIBL74BTL4BcQIBLrwBRrwBWwIBLMABS8ABWwIBKr0BTL0BcwIBKbsBRbsBUQIBJ8MBdMMBgwECARLHAQ3HAZoBAgEjyAENyAGZAQIBIMkBDckBmQECAR3KAQ3KAZoBAgEaywENywGaAQIBF8UBD8UBkQECARR0OnRIAgFfcTtxXAIBXX46flYCAVt7O3tcAgFZxwGGAccBlwECASTIAYUByAGWAQIBIckBhQHJAZYBAgEeygGGAcoBlwECARvLAYYBywGXAQIBGMUBfcUBjgECARU=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d2xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JMb2dnaW5nLnhhbWxHAX4B+wEBBQFcAV4BBAGcAgGhAgEDAcYCAdUCAQJTA+UBDgIBAVQFawoCAWRsBaMBCgIBRqQBBbUBEAIBObYBBdMBCgIBCtQBBdsBDgIBBtwBBeMBDgIBAlQTVDACAWVWCWkSAgFnbBNsLAIBR24JjQEUAgFTkAEJoQEUAgFJpQEHrAEQAgFArQEHtAEQAgE6tgETtgGRAQIBC7gBCdEBFAIBENkBMNkBVwIBCdYBMdYBVwIBB+EBMOEBVQIBBd4BMd4BWQIBA1hPWF8CAWhvC4QBEAIBWYUBC4wBFAIBVJEBC5gBFAIBT5kBC6ABFAIBSqoBMaoBgQECAUOnATOnAVYCAUGyATGyAXkCAT2vATOvAVICATu5AQvGAR0CASbHAQvQARQCARFvGW9NAgFacQ94GAIBYHsPggEYAgFcigE2igFjAgFXhwE3hwFaAgFVlgE2lgFAAgFSkwE3kwFYAgFQngE1ngFeAgFNmwE3mwFWAgFLwQFHwQFxAgE3vAFHvAFUAgE1uwFFuwFQAgEzwAFMwAFxAgEyvgFGvgFbAgEwxAFMxAFnAgEuwgFLwgFbAgEsvwFMvwFzAgErvQFFvQFRAgEpwwFOwwFiAgEnxwF0xwGDAQIBEssBDcsBmgECASPMAQ3MAZkBAgEgzQENzQGZAQIBHc4BDc4BmgECARrPAQ3PAZoBAgEXyQEPyQGRAQIBFHY6dkgCAWNzO3NcAgFhgAE6gAFWAgFffTt9XAIBXcsBhgHLAZcBAgEkzAGFAcwBlgECASHNAYUBzQGWAQIBHs4BhgHOAZcBAgEbzwGGAc8BlwECARjJAX3JAY4BAgEV</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -279,7 +283,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_13" sap:VirtualizedContainerService.HintSize="476.8,210.4">
+      <sap2010:ViewStateData Id="AddLogFields_13" sap:VirtualizedContainerService.HintSize="476.8,226.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -300,14 +304,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_22" sap:VirtualizedContainerService.HintSize="499.2,609.6">
+      <sap2010:ViewStateData Id="Sequence_22" sap:VirtualizedContainerService.HintSize="499.2,625.6">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="822.4,763.2">
+      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="822.4,779.2">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -317,7 +321,7 @@
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="Assign_41" sap:VirtualizedContainerService.HintSize="822.4,60.8" />
       <sap2010:ViewStateData Id="Assign_42" sap:VirtualizedContainerService.HintSize="822.4,60.8" />
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="844.8,2677.6">
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="844.8,2693.6">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -325,7 +329,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="884.8,2757.6" />
+      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="884.8,2773.6" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

@@ -18,6 +18,7 @@
     <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
     <x:Property Name="io_Audit" Type="InOutArgument(scg:Dictionary(x:String, x:Object))" />
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
+    <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -46,6 +47,7 @@
       <x:String>UiPath.Core</x:String>
       <x:String>UiPath.Core.Activities</x:String>
       <x:String>System.Windows.Markup</x:String>
+      <x:String>Microsoft.VisualBasic.CompilerServices</x:String>
     </sco:Collection>
   </TextExpression.NamespacesForImplementation>
   <TextExpression.ReferencesForImplementation>
@@ -74,7 +76,7 @@
   <TryCatch sap2010:Annotation.AnnotationText="##Business Process Layer##&#xA;Description: Open and initialize application as needed.&#xA;&#xA;Pre Condition: N/A&#xA;Post Condtion: Applications opened" DisplayName="wbInitAllApplications" sap2010:WorkflowViewState.IdRef="TryCatch_1">
     <TryCatch.Variables>
       <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbInitAllApplications_StartTime" />
-      <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From &#xD;&#xA;{ {&quot;Successful&quot;, 0}, &#xD;&#xA;{&quot;Failed&quot;, 0},&#xD;&#xA;{&quot;wbType&quot;, wbInitAllApplications_Type},&#xD;&#xA;{&quot;wbParent&quot;, wbInitAllApplications_Parent},&#xD;&#xA;{&quot;wbLevel&quot;, wbInitAllApplications_Level},&#xD;&#xA;{&quot;wbStatus&quot;, &quot;tbd&quot;},&#xD;&#xA;{&quot;wbFinalExec&quot;, wbInitAllApplications_FinalExec},&#xD;&#xA;{&quot;wbDurationSec&quot;, 0},&#xD;&#xA;{&quot;wbDurationHrs&quot;, 0},&#xD;&#xA;{&quot;message&quot;, &quot;&quot;},&#xD;&#xA;{&quot;level&quot;, 0}&#xD;&#xA;}]" Name="wbInitAllApplications_Audit" />
+      <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From &#xA;{ {&quot;Successful&quot;, 0}, &#xA;{&quot;Failed&quot;, 0},&#xA;{&quot;wbType&quot;, wbInitAllApplications_Type},&#xA;{&quot;wbParent&quot;, wbInitAllApplications_Parent},&#xA;{&quot;wbLevel&quot;, wbInitAllApplications_Level},&#xA;{&quot;wbStatus&quot;, &quot;tbd&quot;},&#xA;{&quot;wbFinalExec&quot;, wbInitAllApplications_FinalExec},&#xA;{&quot;wbDurationSec&quot;, 0},&#xA;{&quot;wbDurationHrs&quot;, 0},&#xA;{&quot;message&quot;, &quot;&quot;},&#xA;{&quot;level&quot;, 0}&#xA;}]" Name="wbInitAllApplications_Audit" />
       <Variable x:TypeArguments="x:String" Default="[in_wbType]" Name="wbInitAllApplications_Type" />
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbInitAllApplications_Parent" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbInitAllApplications_Level" />
@@ -94,9 +96,11 @@
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbInitAllApplications_StartTime]</InArgument>
               <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbInitAllApplications_Audit]</InArgument>
               <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
-              <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">True</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">[if(in_Config.Item("wbInitAllApplications_SuppressSuccessful").ToString.Trim.ToLower = "true", true, false)]</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbInitAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
+              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -123,6 +127,8 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbInitAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
+                  <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
@@ -131,7 +137,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMVxQcm9jZXNzTGF5ZXJcU2xhdmVJbml0QWxsQXBwbGljYXRpb25zLnhhbWwoAXEBdgECSgOHAQ4CAQFMNkxGAgEpTU5NuAUCASRONE5BAgEiTzRPQwIBIFAzUEECAR5RNVE7AgEdVAdnEgIBKm8LggEWAgECVQlViwECAUJWCWYUAgErcA2AARgCAQSBAQ2BAUQCAQNXC2UjAgEscQ9/JwIBBVtKW2gCAUBZSFlkAgE+YlViWQIBPV9mX4MBAgE7YVJhVgIBOl5LXmwCAThdTF2QAQIBNlxJXEoCATVjTmOCAQIBMle8AVfWAQIBMVpIWmUCAS9gamB0AgEtdU51bAIBG3NMc2gCARl8WXxeAgEYeWp5hwECARZ7VntbAgEVeE94cAIBE3dQd9EBAgEPdk12TgIBDn1SfYYBAgELccABcdoBAgEKdEx0aQIBCHpuengCAQY=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3lDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcSW5pdEFsbEFwcGxpY2F0aW9ucy54YW1sKwFxAXYBAkwDjQEOAgEBTjZORgIBLE9OT/wEAgEnUDRQQQIBJVE0UUMCASNSM1JBAgEhUzVTOwIBIFYHaxICAS1zC4gBFgIBAlcJV4sBAgFIWAlqFAIBLnQNhgEYAgEEhwENhwFEAgEDWQtpIwIBL3UPhQEnAgEFXUpdaAIBRltIW2QCAURkVWRZAgFDYWZhgwECAUFjUmO+AQIBP2BLYGwCAT1nUWdjAgE7X0xfkAECATleSV5KAgE4ZU5lggECATVZvAFZ1gECATRcSFxlAgEyYmpidAIBMHlOeWwCAR53THdoAgEcgAFZgAFeAgEbfWp9hwECARl/Vn9bAgEYfE98cAIBFoMBVYMBZwIBFHtQe9EBAgEQek16TgIBD4EBUoEBhgECAQyCAVWCAVoCAQt1wAF12gECAQp4THhpAgEIfm5+eAIBBg==</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -187,7 +193,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="417.6,962.4">
+      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="417.6,1082.4">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -196,7 +202,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InitAllApplications_1" sap:VirtualizedContainerService.HintSize="457.6,1082.4" />
+      <sap2010:ViewStateData Id="InitAllApplications_1" sap:VirtualizedContainerService.HintSize="457.6,1322.4" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
