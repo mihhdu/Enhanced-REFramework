@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="wbTemplate" this:wbTemplate.in_LogLevel="0" this:wbTemplate.in_ChildAudit="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" this:wbTemplate.in_wbFinalExec="True" this:wbTemplate.in_wbExceptionType="[string.Empty]"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="wbTemplate" this:wbTemplate.in_LogLevel="0" this:wbTemplate.in_ChildAudit="[New system.Collections.Generic.Dictionary(Of String, Object) from { {&quot;Successful&quot;, 0}, {&quot;Failed&quot;, 0} }]" this:wbTemplate.in_wbFinalExec="True" this:wbTemplate.in_wbExceptionType="[string.Empty]" this:wbTemplate.in_wbParentExceptionHandler="False"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
@@ -25,6 +25,7 @@
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbExceptionType" Type="InArgument(x:String)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
+    <x:Property Name="in_wbParentExceptionHandler" Type="InArgument(x:Boolean)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -150,14 +151,18 @@
               <InArgument x:TypeArguments="x:Object">["Failed"]</InArgument>
             </Assign.Value>
           </Assign>
-          <Assign DisplayName="Increment Parent Failed Audit" sap2010:WorkflowViewState.IdRef="Assign_39">
-            <Assign.To>
-              <OutArgument x:TypeArguments="x:Object">[io_ParentAudit.Item("Failed")]</OutArgument>
-            </Assign.To>
-            <Assign.Value>
-              <InArgument x:TypeArguments="x:Int32">[cint(io_ParentAudit.Item("Failed")) + 1]</InArgument>
-            </Assign.Value>
-          </Assign>
+          <If sap2010:Annotation.AnnotationText="If we have failed and parent is configured to handle our exception, do not propagate " Condition="[in_wbParentExceptionHandler]" DisplayName="If parent handles exception" sap2010:WorkflowViewState.IdRef="If_12">
+            <If.Else>
+              <Assign DisplayName="Increment Parent Failed Audit" sap2010:WorkflowViewState.IdRef="Assign_39">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Object">[io_ParentAudit.Item("Failed")]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Int32">[cint(io_ParentAudit.Item("Failed")) + 1]</InArgument>
+                </Assign.Value>
+              </Assign>
+            </If.Else>
+          </If>
         </Sequence>
       </If.Else>
     </If>
@@ -225,12 +230,12 @@
         <InArgument x:TypeArguments="x:Object">[now.Subtract(in_wbStart).TotalHours]</InArgument>
       </Assign.Value>
     </Assign>
-    <sads:DebugSymbol.Symbol>d2xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JMb2dnaW5nLnhhbWxHAX4B+wEBBQFcAV4BBAGcAgGhAgEDAcYCAdUCAQJTA+UBDgIBAVQFawoCAWRsBaMBCgIBRqQBBbUBEAIBObYBBdMBCgIBCtQBBdsBDgIBBtwBBeMBDgIBAlQTVDACAWVWCWkSAgFnbBNsLAIBR24JjQEUAgFTkAEJoQEUAgFJpQEHrAEQAgFArQEHtAEQAgE6tgETtgGRAQIBC7gBCdEBFAIBENkBMNkBVwIBCdYBMdYBVwIBB+EBMOEBVQIBBd4BMd4BWQIBA1hPWF8CAWhvC4QBEAIBWYUBC4wBFAIBVJEBC5gBFAIBT5kBC6ABFAIBSqoBMaoBgQECAUOnATOnAVYCAUGyATGyAXkCAT2vATOvAVICATu5AQvGAR0CASbHAQvQARQCARFvGW9NAgFacQ94GAIBYHsPggEYAgFcigE2igFjAgFXhwE3hwFaAgFVlgE2lgFAAgFSkwE3kwFYAgFQngE1ngFeAgFNmwE3mwFWAgFLwQFHwQFxAgE3vAFHvAFUAgE1uwFFuwFQAgEzwAFMwAFxAgEyvgFGvgFbAgEwxAFMxAFnAgEuwgFLwgFbAgEsvwFMvwFzAgErvQFFvQFRAgEpwwFOwwFiAgEnxwF0xwGDAQIBEssBDcsBmgECASPMAQ3MAZkBAgEgzQENzQGZAQIBHc4BDc4BmgECARrPAQ3PAZoBAgEXyQEPyQGRAQIBFHY6dkgCAWNzO3NcAgFhgAE6gAFWAgFffTt9XAIBXcsBhgHLAZcBAgEkzAGFAcwBlgECASHNAYUBzQGWAQIBHs4BhgHOAZcBAgEbzwGGAc8BlwECARjJAX3JAY4BAgEV</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d2xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JMb2dnaW5nLnhhbWxKAX4B+wEBBgGDAwGJAwEFAVwBXgEEAZwCAaECAQMBxgIB1QIBAlQD6gEOAgEBVQVsCgIBZ20FqAEKAgFGqQEFugEQAgE5uwEF2AEKAgEK2QEF4AEOAgEG4QEF6AEOAgECVRNVMAIBaFcJahICAWptE20sAgFHbwmOARQCAVaRAQmmARQCAUmqAQexARACAUCyAQe5ARACATq7ARO7AZEBAgELvQEJ1gEUAgEQ3gEw3gFXAgEJ2wEx2wFXAgEH5gEw5gFVAgEF4wEx4wFZAgEDWU9ZXwIBa3ALhQEQAgFchgELjQEUAgFXkgELmQEUAgFSmgELpQEQAgFKrwExrwGBAQIBQ6wBM6wBVgIBQbcBMbcBeQIBPbQBM7QBUgIBO74BC8sBHQIBJswBC9UBFAIBEXAZcE0CAV1yD3kYAgFjfA+DARgCAV+LATaLAWMCAVqIATeIAVoCAViXATaXAUACAVWUATeUAVgCAVOaAZMBmgGyAQIBS5wBD6MBGAIBTcYBR8YBcQIBN8EBR8EBVAIBNcABRcABUAIBM8UBTMUBcQIBMsMBRsMBWwIBMMkBTMkBZwIBLscBS8cBWwIBLMQBTMQBcwIBK8IBRcIBUQIBKcgBTsgBYgIBJ8wBdMwBgwECARLQAQ3QAZoBAgEj0QEN0QGZAQIBINIBDdIBmQECAR3TAQ3TAZoBAgEa1AEN1AGaAQIBF84BD84BkQECARR3OndIAgFmdDt0XAIBZIEBOoEBVgIBYn47flwCAWChATmhAWICAVCeATueAVoCAU7QAYYB0AGXAQIBJNEBhQHRAZYBAgEh0gGFAdIBlgECAR7TAYYB0wGXAQIBG9QBhgHUAZcBAgEYzgF9zgGOAQIBFQ==</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Assign_40" sap:VirtualizedContainerService.HintSize="243.2,64" />
-      <sap2010:ViewStateData Id="If_11" sap:VirtualizedContainerService.HintSize="822.4,214.4">
+      <sap2010:ViewStateData Id="Assign_40" sap:VirtualizedContainerService.HintSize="242,64" />
+      <sap2010:ViewStateData Id="If_11" sap:VirtualizedContainerService.HintSize="1042,212">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -238,9 +243,9 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_36" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="Assign_37" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="If_8" sap:VirtualizedContainerService.HintSize="510.4,211.2">
+      <sap2010:ViewStateData Id="Assign_36" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_37" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_8" sap:VirtualizedContainerService.HintSize="509,208">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -248,24 +253,31 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_38" sap:VirtualizedContainerService.HintSize="510.4,60.8" />
-      <sap2010:ViewStateData Id="Sequence_26" sap:VirtualizedContainerService.HintSize="532.8,436.8">
+      <sap2010:ViewStateData Id="Assign_38" sap:VirtualizedContainerService.HintSize="509,60" />
+      <sap2010:ViewStateData Id="Sequence_26" sap:VirtualizedContainerService.HintSize="531,432">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_34" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="Assign_39" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="Sequence_25" sap:VirtualizedContainerService.HintSize="265.6,286.4">
+      <sap2010:ViewStateData Id="Assign_34" sap:VirtualizedContainerService.HintSize="464,60" />
+      <sap2010:ViewStateData Id="Assign_39" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_12" sap:VirtualizedContainerService.HintSize="464,250">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_25" sap:VirtualizedContainerService.HintSize="486,474">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_9" sap:VirtualizedContainerService.HintSize="822.4,587.2">
+      <sap2010:ViewStateData Id="If_9" sap:VirtualizedContainerService.HintSize="1042,622">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -273,9 +285,9 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_20" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
+      <sap2010:ViewStateData Id="Assign_20" sap:VirtualizedContainerService.HintSize="243,60" />
       <sap2010:ViewStateData Id="Assign_21" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="Sequence_21" sap:VirtualizedContainerService.HintSize="822.4,286.4">
+      <sap2010:ViewStateData Id="Sequence_21" sap:VirtualizedContainerService.HintSize="1042,285">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -321,7 +333,7 @@
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="Assign_41" sap:VirtualizedContainerService.HintSize="822.4,60.8" />
       <sap2010:ViewStateData Id="Assign_42" sap:VirtualizedContainerService.HintSize="822.4,60.8" />
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="844.8,2693.6">
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="1064,2701">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -329,7 +341,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="884.8,2773.6" />
+      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="1104,2781" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
