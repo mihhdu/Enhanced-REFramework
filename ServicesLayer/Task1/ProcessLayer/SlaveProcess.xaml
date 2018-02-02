@@ -140,12 +140,23 @@
             <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
           </ActivityAction.Argument>
           <Sequence DisplayName="Exception Handling, AppEx" sap2010:WorkflowViewState.IdRef="Sequence_50">
+            <Sequence.Variables>
+              <Variable x:TypeArguments="x:Boolean" Name="wbExceptionHandledHere" />
+            </Sequence.Variables>
             <Sequence sap2010:Annotation.AnnotationText="Handle exeption. If true log successful" DisplayName="Handle the Exception" sap2010:WorkflowViewState.IdRef="Sequence_56">
               <ui:SetTransactionStatus ServiceBaseAddress="{x:Null}" TimeoutMS="{x:Null}" sap2010:Annotation.AnnotationText="System exception" DisplayName="Set transaction status" ErrorType="Application" sap2010:WorkflowViewState.IdRef="SetTransactionStatus_10" Reason="[exception.Message]" Status="Failed" TransactionItem="[in_TransactionItem]">
                 <ui:SetTransactionStatus.Output>
                   <scg:Dictionary x:TypeArguments="x:String, InArgument" />
                 </ui:SetTransactionStatus.Output>
               </ui:SetTransactionStatus>
+              <Assign sap2010:Annotation.AnnotationText="Set this is you are certain to have solved the exception in this sequence" DisplayName="Set the Exception Solved flag" sap2010:WorkflowViewState.IdRef="Assign_1">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Boolean">[wbExceptionHandledHere]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Boolean">False</InArgument>
+                </Assign.Value>
+              </Assign>
             </Sequence>
             <Sequence sap2010:Annotation.AnnotationText="Logging for work block. The sequence adds logging fields and counts the number of successful and failed child processes by adding wbName_Audit of the child processes to the dictionary named wbName_Audit &lt;string, object&gt; of the parent process" DisplayName="wb Logging Failed" sap2010:WorkflowViewState.IdRef="Sequence_49">
               <Sequence DisplayName="If this is the last try log Error" sap2010:WorkflowViewState.IdRef="Sequence_48">
@@ -161,15 +172,15 @@
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcess_Type]</InArgument>
                     <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcess_Level]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbProcess_Parent]</InArgument>
-                    <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">[if(wbProcess_FinalExec AND in_wbFinalExec, 3, 2)]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["TransactionNumber "+in_TransactionNumber.ToString+", RetryNumber "+in_RetryNumber.ToString+". Work Block "+ wbProcess_Type.toString +" failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
+                    <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">[if(wbExceptionHandledHere, 1, if(wbProcess_FinalExec AND in_wbFinalExec, 3, 2))]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["TransactionNumber "+in_TransactionNumber.ToString+", RetryNumber "+in_RetryNumber.ToString+". Work Block "+ wbProcess_Type.toString +if(wbExceptionHandledHere, " recoverd from exception "," failed with exception ")+exception.Message+" at Source "+exception.Source]</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcess_StartTime]</InArgument>
                     <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbProcess_Audit]</InArgument>
                     <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
                     <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
-                    <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
+                    <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">[wbExceptionHandledHere]</InArgument>
                     <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbProcess_FinalExec AND in_wbFinalExec]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">[if(wbExceptionHandledHere, string.Empty, "AppEx")]</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                   </ui:InvokeWorkflowFile.Arguments>
                 </ui:InvokeWorkflowFile>
@@ -184,9 +195,9 @@
                 </ui:RemoveLogFields>
               </Sequence>
             </Sequence>
-            <If Condition="[not(in_ContinueOnError)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_1">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock sets in_ContinueOnError to True, this means it intends to handle the exception. &#xA;- Rethrow only if it was not handled internally and will be handled by parent." Condition="[not(wbExceptionHandledHere) AND not(in_ContinueOnError)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_3">
               <If.Then>
-                <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_8" />
+                <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_10" />
               </If.Then>
             </If>
           </Sequence>
@@ -198,12 +209,23 @@
             <DelegateInArgument x:TypeArguments="ui:BusinessRuleException" Name="exception" />
           </ActivityAction.Argument>
           <Sequence DisplayName="Exception Handling, BRE" sap2010:WorkflowViewState.IdRef="Sequence_52">
+            <Sequence.Variables>
+              <Variable x:TypeArguments="x:Boolean" Name="wbExceptionHandledHere" />
+            </Sequence.Variables>
             <Sequence sap2010:Annotation.AnnotationText="Handle exeption. If true log successful" DisplayName="Handle the Exception" sap2010:WorkflowViewState.IdRef="Sequence_59">
               <ui:SetTransactionStatus ServiceBaseAddress="{x:Null}" TimeoutMS="{x:Null}" sap2010:Annotation.AnnotationText="Business exception" DisplayName="Set transaction status" ErrorType="Business" sap2010:WorkflowViewState.IdRef="SetTransactionStatus_11" Reason="[exception.Message]" Status="Failed" TransactionItem="[in_TransactionItem]">
                 <ui:SetTransactionStatus.Output>
                   <scg:Dictionary x:TypeArguments="x:String, InArgument" />
                 </ui:SetTransactionStatus.Output>
               </ui:SetTransactionStatus>
+              <Assign sap2010:Annotation.AnnotationText="Set this is you are certain to have solved the exception in this sequence" DisplayName="Set the Exception Solved flag" sap2010:WorkflowViewState.IdRef="Assign_2">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Boolean">[wbExceptionHandledHere]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Boolean">False</InArgument>
+                </Assign.Value>
+              </Assign>
             </Sequence>
             <Sequence sap2010:Annotation.AnnotationText="Logging for work block. The sequence adds logging fields and counts the number of successful and failed child processes by adding wbName_Audit of the child processes to the dictionary named wbName_Audit &lt;string, object&gt; of the parent process" DisplayName="wb Logging Failed" sap2010:WorkflowViewState.IdRef="Sequence_51">
               <ui:AddLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Log Fields" sap2010:WorkflowViewState.IdRef="AddLogFields_28">
@@ -218,15 +240,15 @@
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcess_Type]</InArgument>
                   <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcess_Level]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbProcess_Parent]</InArgument>
-                  <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">3</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["TransactionNumber "+in_TransactionNumber.ToString+", RetryNumber "+in_RetryNumber.ToString+". Work Block "+ wbProcess_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source+". BRE"]</InArgument>
+                  <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">[if(wbExceptionHandledHere, 1, 3)]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage" xml:space="preserve">["TransactionNumber "+in_TransactionNumber.ToString+", RetryNumber "+in_RetryNumber.ToString+". Work Block "+ wbProcess_Type.toString +  if(wbExceptionHandledHere, " recoverd from exception "," failed with exception ")+exception.Message+" at Source "+exception.Source]</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcess_StartTime]</InArgument>
                   <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbProcess_Audit]</InArgument>
                   <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
-                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
+                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">[wbExceptionHandledHere]</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">[if(wbExceptionHandledHere, string.Empty, "BRE")]</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
@@ -240,16 +262,16 @@
                 </ui:RemoveLogFields.Fields>
               </ui:RemoveLogFields>
             </Sequence>
-            <If Condition="[not(in_ContinueOnError)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_2">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock sets in_ContinueOnError to True, this means it intends to handle the exception. &#xA;- Rethrow only if it was not handled internally and will be handled by parent." Condition="[not(wbExceptionHandledHere) AND not(in_ContinueOnError)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_4">
               <If.Then>
-                <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_9" />
+                <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_11" />
               </If.Then>
             </If>
           </Sequence>
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d29DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1YyXFByb2Nlc3NMYXllclxQcm9jZXNzLnhhbWxkAW8BdAECUgP9AQ4CAQFUNlRGAgFrVU5VzAQCAWZWNFZBAgFkVzRXQwIBYlgzWEECAWBZNVk7AgFfXAeGARICAWyOAQvAARYCASvIAQv4ARYCAQJdCV2MAQMBkgFeCYUBFAIBbY8BDZUBGAIBWZYBDboBGAIBMLsBDb8BEgIBLMkBDc8BGAIBJtABDfIBGAIBB/MBDfcBEgIBA18LYyUDAY8BZAtqHQMBiwFrC3sjAgFyfAuEASACAW6QAQ+UASkCAVqXAQ+5ARoCATG7ARu7ATYCAS29ARG9AUgCAS/KAQ/OASkCASfRAQ/XASECASLYAQ/oAScCAQzpAQ/xASQCAQjzARvzATYCAQT1ARH1AUgCAQZfsgJfyAIDAZABaFJoYAMBjgFnUmdgAwGNAWZOZmUDAYwBb0pvXAMBiQFtSG1YAwGHAXZVdlkDAYYBc2ZzdwMBhAF1UnWzAQMBggFyS3JgAwGAAXlReWMCAX5xTHHiAQIBenBJcEoCAXl3TndSAgF4a7wBa9YBAgF3bkhuWQIBdXRqdHQCAXN/OH9HAgFxgAE4gAFLAgFwgQE4gQFLAgFvkAGOApABowICAV2QAcQCkAHaAgIBW5gBEZ4BIwIBVZ8BEa8BKQIBNrABEbgBJgIBMsoBjQLKAaICAgEqygHDAsoB2QICASjVAVbVAWQCASXUAVbUAWQCASTTAVLTAWkCASPcAU7cAWACASDaAUzaAVwCAR7jAVnjAV4CAR3gAWrgAXsCARviAVbiAVsCARrfAU/fAWQCARjmAVXmAWcCARbeAVDeAasCAgEV3QFN3QFOAgEU5AFS5AFWAgET5QFV5QFaAgES2AHAAdgB2gECARHbAUzbAV0CAQ/hAW7hAXgCAQ3sATzsAUsCAQvtATztAU8CAQruATzuAU8CAQmcAVicAWYCAVibAVibAWYCAVeaAVSaAWsCAVajAVCjAWICAVOhAU6hAV4CAVGqAVuqAWACAVCnAWynAX0CAU6pAVipAV0CAU2mAVGmAWYCAUutAVetAWkCAUmlAVKlAaQCAgFDpAFPpAGBAQIBQKsBVKsBfAIBPawBV6wBXAIBPJ8BwgGfAdwBAgE7ogFOogFfAgE5qAFwqAF6AgE3swE+swFNAgE1tAE+tAFRAgE0tQE+tQFRAgEz</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d21DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcUHJvY2Vzcy54YW1saQFvAXQBAlIDkwIOAgEBVDZURgIBfFVOVcwEAgF3VjRWQQIBdVc0V0MCAXNYM1hBAgFxWTVZOwIBcFwHhgESAgF9jgELywEWAgEz0wELjgIWAgECXQldjAEDAaMBXgmFARQCAX6SAQ2gARgCAWahAQ3FARgCATnGAQ3KARICATTXAQ3lARgCASrmAQ2IAhgCAQiJAg2NAhICAQNfC2MlAwGgAWQLah0DAZwBawt7IwMBgwF8C4QBIAIBf5MBD5cBKQIBa5gBD58BGAIBZ6IBD8QBGgIBOsYB+QHGAbQCAgE1yAERyAFJAgE42AEP3AEpAgEv3QEP5AEYAgEr5wEP7QEhAgEm7gEP/gEnAgEN/wEPhwIkAgEJiQL5AYkCtAICAQSLAhGLAkkCAQdfsgJfyAIDAaEBaFJoYAMBnwFnUmdgAwGeAWZOZmUDAZ0Bb0pvXAMBmgFtSG1YAwGYAXZVdlkDAZcBc2ZzdwMBlQF1UnWzAQMBkwFyS3JgAwGRAXlReWMDAY8BcUxx4gEDAYsBcElwSgMBigF3TndSAwGJAWu8AWvWAQMBiAFuSG5ZAwGGAXRqdHQDAYQBfzh/RwMBggGAATiAAUsDAYEBgQE4gQFLAwGAAZMBjgKTAaMCAgFukwHEApMB2gICAWydATudAUACAWqaATyaAVQCAWijARGpASMCAWKqARG6ASkCAT+7ARHDASYCATvYAY0C2AGiAgIBMtgBwwLYAdkCAgEw4gE74gFAAgEu3wE83wFUAgEs6wFW6wFkAgEp6gFW6gFkAgEo6QFS6QFpAgEn8gFO8gFgAgEk8AFM8AFcAgEi+QFZ+QFxAgEg9gFq9gF7AgEe+AFW+AFbAgEd9QFP9QFkAgEb/AFV/AFnAgEZ8wFN8wFvAgEW+gFS+gFWAgEV+wFV+wGGAQIBE+4BwAHuAdoBAgES8QFM8QFdAgEQ9wFu9wF4AgEOggI8ggJLAgEMgwI8gwJPAgELhAI8hAJPAgEKpwFYpwFmAgFlpgFYpgFmAgFkpQFUpQFrAgFjrgFQrgFiAgFgrAFOrAFeAgFetQFbtQFzAgFcsgFssgF9AgFatAFYtAFdAgFZsQFRsQFmAgFXuAFXuAFpAgFVsAFSsAHcAgIBTq8BT68BoAECAUq2AVS2AXwCAUe3AVe3AYoBAgFFqgHCAaoB3AECAUStAU6tAV8CAUKzAXCzAXoCAUC+AT6+AU0CAT6/AT6/AVECAT3AAT7AAVECATw=</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -301,14 +323,21 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="SetTransactionStatus_10" sap:VirtualizedContainerService.HintSize="200,49">
+      <sap2010:ViewStateData Id="SetTransactionStatus_10" sap:VirtualizedContainerService.HintSize="242,49">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_56" sap:VirtualizedContainerService.HintSize="464,215">
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,102">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_56" sap:VirtualizedContainerService.HintSize="464,342">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -349,31 +378,44 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Rethrow_8" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="464,208" />
-      <sap2010:ViewStateData Id="Sequence_50" sap:VirtualizedContainerService.HintSize="486,1317">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="492,1386">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="SetTransactionStatus_11" sap:VirtualizedContainerService.HintSize="200,49">
+      <sap2010:ViewStateData Id="Rethrow_10" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="464,265">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_59" sap:VirtualizedContainerService.HintSize="464,215">
+      <sap2010:ViewStateData Id="Sequence_50" sap:VirtualizedContainerService.HintSize="486,1414">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="404,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="SetTransactionStatus_11" sap:VirtualizedContainerService.HintSize="242,49">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,102">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_59" sap:VirtualizedContainerService.HintSize="464,342">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -406,8 +448,15 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Rethrow_9" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="464,208">
+      <sap2010:ViewStateData Id="Rethrow_11" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="If_4" sap:VirtualizedContainerService.HintSize="464,265">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_52" sap:VirtualizedContainerService.HintSize="486,1377">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -415,15 +464,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_52" sap:VirtualizedContainerService.HintSize="486,1193">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_8" sap:VirtualizedContainerService.HintSize="492,21">
+      <sap2010:ViewStateData Id="Catch`1_8" sap:VirtualizedContainerService.HintSize="404,21">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -431,14 +472,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="506,1642">
+      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="418,1561">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="546,1762" />
+      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="458,1921" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
