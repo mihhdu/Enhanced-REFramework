@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="Main" this:Main.in_wbType="Uninitialised Task name" this:Main.in_wbLevel="3" this:Main.in_wbParent="Process" this:Main.in_TaskEnv="ServicesLayer\Task1" this:Main.in_wbFinalExec="True" this:Main.in_wbParentStart="[datetime.now()]"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="Main" this:Main.in_wbType="MainTask" this:Main.in_wbLevel="0" this:Main.in_wbParent="[string.Empty]" this:Main.in_wbFinalExec="True" this:Main.in_wbParentStart="[datetime.now()]"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:av="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -17,11 +17,11 @@
     <x:Property Name="in_wbType" Type="InArgument(x:String)" />
     <x:Property Name="in_wbLevel" Type="InArgument(x:Int32)" />
     <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
-    <x:Property Name="io_Audit" Type="InOutArgument(scg:Dictionary(x:String, x:Object))" />
-    <x:Property Name="in_TransactionData" Type="InArgument(scg:List(sd:DataRow))" />
-    <x:Property Name="in_TaskEnv" Type="InArgument(x:String)" />
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
+    <x:Property Name="io_Audit" Type="InOutArgument(scg:List(scg:Dictionary(x:String, x:Object)))" />
+    <x:Property Name="in_TaskEnv" Type="InArgument(x:String)" />
+    <x:Property Name="in_TransactionData" Type="InArgument(scg:List(sd:DataRow))" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -89,7 +89,7 @@
           <TryCatch sap2010:Annotation.AnnotationText="Initialisation work block." DisplayName="wbInit" sap2010:WorkflowViewState.IdRef="TryCatch_17">
             <TryCatch.Variables>
               <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbInit_StartTime" />
-              <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From &#xA;{ {&quot;Successful&quot;, 0}, &#xA;{&quot;Failed&quot;, 0},&#xA;{&quot;wbType&quot;, wbInit_Type},&#xA;{&quot;wbParent&quot;, wbInit_Parent},&#xA;{&quot;wbLevel&quot;, wbInit_Level},&#xA;{&quot;wbStatus&quot;, &quot;tbd&quot;},&#xA;{&quot;wbFinalExec&quot;, wbInit_FinalExec},&#xA;{&quot;wbDurationSec&quot;, 0},&#xA;{&quot;wbDurationHrs&quot;, 0},&#xA;{&quot;message&quot;, &quot;&quot;},&#xA;{&quot;level&quot;, 0}&#xA;}]" Name="wbInit_Audit" />
+              <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[New system.Collections.Generic.list(of Dictionary(Of String, Object))]" Name="wbInit_Audit" />
               <Variable x:TypeArguments="x:String" Name="wbInit_Type" />
               <Variable x:TypeArguments="x:String" Default="[wbMain_Type]" Name="wbInit_Parent" />
               <Variable x:TypeArguments="x:Int32" Default="[wbMain_Level+1]" Name="wbInit_Level" />
@@ -101,17 +101,16 @@
                   <Sequence DisplayName="Reset Env in case of SystemError" sap2010:WorkflowViewState.IdRef="Sequence_265">
                     <If Condition="[SystemError isNot Nothing]" DisplayName="If System Error Reset Env" sap2010:WorkflowViewState.IdRef="If_40">
                       <If.Then>
-                        <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke CloseAllApplications workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_106" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveCloseAllApplications.xaml&quot;)]">
+                        <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke CloseAllApplications workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_84" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveCloseAllApplications.xaml&quot;)]">
                           <ui:InvokeWorkflowFile.Arguments>
                             <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[Config.Item("wbCloseAllApplications_Type").ToString]</InArgument>
                             <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbInit_Type]</InArgument>
                             <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbInit_Level+1]</InArgument>
-                            <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_Audit">[wbInit_Audit]</InOutArgument>
+                            <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[wbInit_Audit]</InOutArgument>
                             <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbInit_FinalExec AND wbMain_FinalExec]</InArgument>
                             <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbInit_StartTime]</InArgument>
                             <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_Config">[Config]</InArgument>
-                            <InArgument x:TypeArguments="x:Boolean" x:Key="in_ContinueOnError">False</InArgument>
-                            <InArgument x:TypeArguments="x:String" x:Key="in_TaskEnv">[in_TaskEnv]</InArgument>
+                            <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                           </ui:InvokeWorkflowFile.Arguments>
                         </ui:InvokeWorkflowFile>
                       </If.Then>
@@ -135,7 +134,7 @@
                             <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="out_Config">[Config]</OutArgument>
                           </ui:InvokeWorkflowFile.Arguments>
                         </ui:InvokeWorkflowFile>
-                        <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke KillAllProcesses workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_86" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveKillAllProcesses.xaml&quot;)]">
+                        <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" sap2010:Annotation.AnnotationText="Start from a clean environment" DisplayName="Invoke KillAllProcesses workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_86" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveKillAllProcesses.xaml&quot;)]">
                           <ui:InvokeWorkflowFile.Arguments>
                             <scg:Dictionary x:TypeArguments="x:String, Argument" />
                           </ui:InvokeWorkflowFile.Arguments>
@@ -153,16 +152,16 @@
                   </Assign>
                 </Sequence>
                 <Sequence sap2010:Annotation.AnnotationText="Call Business Process Layer" DisplayName="Business Process Layer Interface" sap2010:WorkflowViewState.IdRef="Sequence_270">
-                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke InitiAllApplications workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_105" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveInitAllApplications.xaml&quot;)]">
+                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke InitiAllApplications workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_90" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveInitAllApplications.xaml&quot;)]">
                     <ui:InvokeWorkflowFile.Arguments>
                       <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_Config">[Config]</InArgument>
                       <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[Config.Item("wbInitAllApplications_Type").ToString]</InArgument>
                       <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbInit_Level+1]</InArgument>
                       <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbInit_Type]</InArgument>
-                      <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_Audit">[wbInit_Audit]</InOutArgument>
+                      <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[wbInit_Audit]</InOutArgument>
                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbInit_FinalExec AND wbMain_FinalExec]</InArgument>
                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbInit_StartTime]</InArgument>
-                      <InArgument x:TypeArguments="x:Boolean" x:Key="in_ContinueOnError">False</InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                     </ui:InvokeWorkflowFile.Arguments>
                   </ui:InvokeWorkflowFile>
                 </Sequence>
@@ -172,17 +171,17 @@
                       <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbInit_Type]</InArgument>
                       <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbInit_Level]</InArgument>
                       <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbInit_Parent]</InArgument>
-                      <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">1</InArgument>
+                      <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Info</InArgument>
                       <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbInit_Type.toString + " successful"]</InArgument>
                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbInit_StartTime]</InArgument>
-                      <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbInit_Audit]</InArgument>
-                      <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                      <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit" />
+                      <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">[if(Config.Item("wbInit_SuppressSuccessful").ToString.trim.ToLower = "true", true, false)]</InArgument>
                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                       <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                      <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler" />
+                      <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                     </ui:InvokeWorkflowFile.Arguments>
                   </ui:InvokeWorkflowFile>
                 </Sequence>
@@ -209,17 +208,17 @@
                           <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbInit_Type]</InArgument>
                           <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbInit_Level]</InArgument>
                           <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbInit_Parent]</InArgument>
-                          <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">4</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Fatal</InArgument>
                           <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbInit_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbInit_StartTime]</InArgument>
-                          <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbInit_Audit]</InArgument>
-                          <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                          <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbInit_Audit]</InArgument>
+                          <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit" />
                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                           <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                          <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler">False</InArgument>
+                          <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                         </ui:InvokeWorkflowFile.Arguments>
                       </ui:InvokeWorkflowFile>
                     </Sequence>
@@ -239,7 +238,7 @@
                       <Variable x:TypeArguments="x:Int32" Default="[wbMain_Level+1]" Name="wbGetTransactionData_Level" />
                       <Variable x:TypeArguments="x:String" Default="[wbMain_Type]" Name="wbGetTransactionData_Parent" />
                       <Variable x:TypeArguments="x:String" Default="[Config.Item(&quot;wbGetTransactionData_Type&quot;).ToString]" Name="wbGetTransactionData_Type" />
-                      <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From &#xA;{ {&quot;Successful&quot;, 0}, &#xA;{&quot;Failed&quot;, 0},&#xA;{&quot;wbType&quot;, wbGetTransactionData_Type},&#xA;{&quot;wbParent&quot;, wbGetTransactionData_Parent},&#xA;{&quot;wbLevel&quot;, wbGetTransactionData_Level},&#xA;{&quot;wbStatus&quot;, &quot;tbd&quot;},&#xA;{&quot;wbFinalExec&quot;, wbGetTransactionData_FinalExec},&#xA;{&quot;wbDurationSec&quot;, 0},&#xA;{&quot;wbDurationHrs&quot;, 0},&#xA;{&quot;message&quot;, &quot;&quot;},&#xA;{&quot;level&quot;, 0}&#xA;}]" Name="wbGetTransactionData_Audit" />
+                      <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[New system.Collections.Generic.list(of Dictionary(Of String, Object))]" Name="wbGetTransactionData_Audit" />
                       <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbGetTransactionData_StartTime" />
                       <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbGetTransactionData_FinalExec" />
                     </TryCatch.Variables>
@@ -295,17 +294,17 @@
                               <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbGetTransactionData_Type]</InArgument>
                               <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbGetTransactionData_Level]</InArgument>
                               <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbGetTransactionData_Parent]</InArgument>
-                              <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">1</InArgument>
+                              <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Info</InArgument>
                               <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Transaction Number " + SystemReserved.Item("TransactionNumber").ToString + ". " + "Work Block "+ wbGetTransactionData_Type.toString + " successful"]</InArgument>
                               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbGetTransactionData_StartTime]</InArgument>
-                              <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbGetTransactionData_Audit]</InArgument>
-                              <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                              <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit" />
+                              <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
                               <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">[if(Config.Item("wbGetTransactionData_SuppressSuccessful").ToString.trim.ToLower = "true", true, false)]</InArgument>
                               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
                               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
                               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                              <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler" />
+                              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                             </ui:InvokeWorkflowFile.Arguments>
                           </ui:InvokeWorkflowFile>
                         </Sequence>
@@ -340,17 +339,17 @@
                                   <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbGetTransactionData_Type]</InArgument>
                                   <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbGetTransactionData_Level]</InArgument>
                                   <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbGetTransactionData_Parent]</InArgument>
-                                  <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">4</InArgument>
+                                  <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Fatal</InArgument>
                                   <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Transaction Number " + SystemReserved.Item("TransactionNumber").ToString + ". " + "Work Block "+ wbGetTransactionData_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
                                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbGetTransactionData_StartTime]</InArgument>
-                                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbGetTransactionData_Audit]</InArgument>
-                                  <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                                  <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbGetTransactionData_Audit]</InArgument>
+                                  <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
                                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbGetTransactionData_FinalExec AND wbMain_FinalExec]</InArgument>
                                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler">False</InArgument>
+                                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                 </ui:InvokeWorkflowFile.Arguments>
                               </ui:InvokeWorkflowFile>
                             </Sequence>
@@ -368,7 +367,7 @@
                           <TryCatch sap2010:Annotation.AnnotationText="Process Transaction State work block." DisplayName="wbProcessTransaction" sap2010:WorkflowViewState.IdRef="TryCatch_19">
                             <TryCatch.Variables>
                               <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbProcessTransaction_StartTime" />
-                              <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From &#xA;{ {&quot;Successful&quot;, 0}, &#xA;{&quot;Failed&quot;, 0},&#xA;{&quot;wbType&quot;, wbProcessTransaction_Type},&#xA;{&quot;wbParent&quot;, wbProcessTransaction_Parent},&#xA;{&quot;wbLevel&quot;, wbProcessTransaction_Level},&#xA;{&quot;wbStatus&quot;, &quot;tbd&quot;},&#xA;{&quot;wbFinalExec&quot;, wbProcessTransaction_FinalExec},&#xA;{&quot;wbDurationSec&quot;, 0},&#xA;{&quot;wbDurationHrs&quot;, 0},&#xA;{&quot;message&quot;, &quot;&quot;},&#xA;{&quot;level&quot;, 0}&#xA;}]" Name="wbProcessTransaction_Audit" />
+                              <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[New system.Collections.Generic.list(of Dictionary(Of String, Object))]" Name="wbProcessTransaction_Audit" />
                               <Variable x:TypeArguments="x:String" Default="[Config.Item(&quot;wbProcessTransaction_Type&quot;).ToString]" Name="wbProcessTransaction_Type" />
                               <Variable x:TypeArguments="x:String" Default="[wbMain_Type]" Name="wbProcessTransaction_Parent" />
                               <Variable x:TypeArguments="x:Int32" Default="[wbMain_Level+1]" Name="wbProcessTransaction_Level" />
@@ -377,7 +376,7 @@
                             <TryCatch.Try>
                               <Sequence DisplayName="Try processing wbProcessTransaction" sap2010:WorkflowViewState.IdRef="Sequence_286">
                                 <Sequence sap2010:Annotation.AnnotationText="This section is needed for the correct operation of the framework. Edits here break things." DisplayName="System - reserved" sap2010:WorkflowViewState.IdRef="Sequence_296">
-                                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetQueueRetries workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_104" UnSafe="False" WorkflowFileName="Framework\GetQueueRetries.xaml">
+                                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetQueueRetries workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_106" UnSafe="False" WorkflowFileName="Framework\GetQueueRetries.xaml">
                                     <ui:InvokeWorkflowFile.Arguments>
                                       <InArgument x:TypeArguments="ui:QueueItem" x:Key="in_TransactionItem">[TransactionItem]</InArgument>
                                       <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_SystemReserved">[SystemReserved]</InOutArgument>
@@ -393,20 +392,20 @@
                                     </Assign.Value>
                                   </Assign>
                                 </Sequence>
-                                <Sequence sap2010:Annotation.AnnotationText="Call Business Process Layer " DisplayName="Business Process Layer Interface" sap2010:WorkflowViewState.IdRef="Sequence_284">
-                                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke ProcessTransaction workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_107" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveProcess.xaml&quot;)]">
+                                <Sequence sap2010:Annotation.AnnotationText="Call Business Process Layer" DisplayName="Business Process Layer Interface" sap2010:WorkflowViewState.IdRef="Sequence_284">
+                                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke ProcessTransaction workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_96" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveProcess.xaml&quot;)]">
                                     <ui:InvokeWorkflowFile.Arguments>
                                       <InArgument x:TypeArguments="ui:QueueItem" x:Key="in_TransactionItem">[TransactionItem]</InArgument>
                                       <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_Config">[Config]</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbProcessTransaction_Type]</InArgument>
                                       <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcessTransaction_Level+1]</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[Config.Item("wbProcess_Type").ToString]</InArgument>
-                                      <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_Audit">[wbProcessTransaction_Audit]</InOutArgument>
+                                      <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[wbProcessTransaction_Audit]</InOutArgument>
                                       <InArgument x:TypeArguments="x:Int32" x:Key="in_TransactionNumber">[cint(SystemReserved.Item("TransactionNumber"))]</InArgument>
                                       <InArgument x:TypeArguments="x:Int32" x:Key="in_RetryNumber">[cint(SystemReserved.Item("RetryNumber"))]</InArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbProcessTransaction_FinalExec AND wbMain_FinalExec]</InArgument>
                                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbProcessTransaction_StartTime]</InArgument>
-                                      <InArgument x:TypeArguments="x:Boolean" x:Key="in_ContinueOnError">False</InArgument>
+                                      <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                     </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
                                 </Sequence>
@@ -416,17 +415,17 @@
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcessTransaction_Type]</InArgument>
                                       <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcessTransaction_Level]</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbProcessTransaction_Parent]</InArgument>
-                                      <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">1</InArgument>
+                                      <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Info</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Transaction Number " + SystemReserved.Item("TransactionNumber").ToString + ". " + "Work Block "+ wbProcessTransaction_Type.toString + " successful"]</InArgument>
                                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcessTransaction_StartTime]</InArgument>
-                                      <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbProcessTransaction_Audit]</InArgument>
-                                      <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                                      <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbProcessTransaction_Audit]</InArgument>
+                                      <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">[if(Config.Item("wbProcessTransaction_SuppressSuccessful").ToString.Trim.ToLower = "true", true , false)]</InArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
-                                      <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbProcessTransaction_StartTime]</InArgument>
-                                      <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler">False</InArgument>
+                                      <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
+                                      <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                     </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
                                 </Sequence>
@@ -453,17 +452,17 @@
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcessTransaction_Type]</InArgument>
                                           <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcessTransaction_Level]</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbProcessTransaction_Parent]</InArgument>
-                                          <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">[if(wbProcessTransaction_FinalExec AND wbMain_FinalExec, 3, 2)]</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">[if(wbProcessTransaction_FinalExec AND wbMain_FinalExec, "Error", "Warn")]</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Transaction Number " + SystemReserved.Item("TransactionNumber").ToString + ". " + "Work Block "+ wbProcessTransaction_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
                                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcessTransaction_StartTime]</InArgument>
-                                          <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbProcessTransaction_Audit]</InArgument>
-                                          <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                                          <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbProcessTransaction_Audit]</InArgument>
+                                          <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbProcessTransaction_FinalExec AND wbMain_FinalExec]</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                                          <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler">False</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
                                     </Sequence>
@@ -490,17 +489,17 @@
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcessTransaction_Type]</InArgument>
                                           <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcessTransaction_Level]</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbProcessTransaction_Parent]</InArgument>
-                                          <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">3</InArgument>
-                                          <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Transaction Number " + SystemReserved.Item("TransactionNumber").ToString + ". " + "Work Block "+ wbProcessTransaction_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Error</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Transaction Number " + SystemReserved.Item("TransactionNumber").ToString + ". " + "Work Block "+ wbProcessTransaction_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source + ". BRE"]</InArgument>
                                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcessTransaction_StartTime]</InArgument>
-                                          <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbProcessTransaction_Audit]</InArgument>
-                                          <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
+                                          <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbProcessTransaction_Audit]</InArgument>
+                                          <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[wbMain_Audit]</InOutArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">BRE</InArgument>
                                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                                          <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler">False</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
                                     </Sequence>
@@ -517,11 +516,11 @@
                                   <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbMain_Level+1]</InArgument>
                                   <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbMain_Type]</InArgument>
                                   <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[Config.Item("wbNextTransaction_Type").ToString]</InArgument>
-                                  <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_Audit">[wbMain_Audit]</InOutArgument>
+                                  <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[wbMain_Audit]</InOutArgument>
                                   <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_SystemReserved">[SystemReserved]</InOutArgument>
-                                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbMain_FinalExec]</InArgument>
+                                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_ContinueOnError">False</InArgument>
+                                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                 </ui:InvokeWorkflowFile.Arguments>
                               </ui:InvokeWorkflowFile>
                             </TryCatch.Finally>
@@ -549,17 +548,17 @@
                                     </If.Then>
                                   </If>
                                 </Sequence>
-                                <Sequence sap2010:Annotation.AnnotationText="Call Business Process Layer " DisplayName="Business Process Layer Interface" sap2010:WorkflowViewState.IdRef="Sequence_291">
-                                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke CloseAllApplications workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_108" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveCloseAllApplications.xaml&quot;)]">
+                                <Sequence sap2010:Annotation.AnnotationText="Call Business Process Layer" DisplayName="Business Process Layer Interface" sap2010:WorkflowViewState.IdRef="Sequence_291">
+                                  <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke CloseAllApplications workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_101" UnSafe="False" WorkflowFileName="[path.Combine(in_TaskEnv, &quot;ProcessLayer\SlaveCloseAllApplications.xaml&quot;)]">
                                     <ui:InvokeWorkflowFile.Arguments>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[Config.Item("wbCloseAllApplications_Type").ToString]</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbMain_Type]</InArgument>
                                       <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbMain_Level+2]</InArgument>
-                                      <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_Audit">[wbMain_Audit]</InOutArgument>
+                                      <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[wbMain_Audit]</InOutArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbMain_FinalExec]</InArgument>
                                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
                                       <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_Config">[Config]</InArgument>
-                                      <InArgument x:TypeArguments="x:Boolean" x:Key="in_ContinueOnError">False</InArgument>
+                                      <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_TaskEnv">[in_TaskEnv]</InArgument>
                                     </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
@@ -570,17 +569,17 @@
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbMain_Type]</InArgument>
                                       <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbMain_Level]</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbMain_Parent]</InArgument>
-                                      <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">1</InArgument>
+                                      <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Info</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbMain_Type.toString + " successful"]</InArgument>
                                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbMain_StartTime]</InArgument>
-                                      <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbMain_Audit]</InArgument>
-                                      <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
+                                      <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbMain_Audit]</InArgument>
+                                      <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
                                       <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbMain_FinalExec]</InArgument>
                                       <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
                                       <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                                      <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler" />
+                                      <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                     </ui:InvokeWorkflowFile.Arguments>
                                   </ui:InvokeWorkflowFile>
                                 </Sequence>
@@ -599,20 +598,21 @@
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbMain_Type]</InArgument>
                                           <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbMain_Level]</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbMain_Parent]</InArgument>
-                                          <InArgument x:TypeArguments="x:Int32" x:Key="in_LogLevel">4</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Fatal</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbMain_Type.toString + " failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
                                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbMain_StartTime]</InArgument>
-                                          <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="in_ChildAudit">[wbMain_Audit]</InArgument>
-                                          <InOutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
+                                          <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbMain_Audit]</InArgument>
+                                          <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                                           <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbMain_FinalExec]</InArgument>
                                           <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                                           <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[wbMain_StartTime]</InArgument>
-                                          <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbParentExceptionHandler">False</InArgument>
+                                          <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">Rethrow</InArgument>
                                         </ui:InvokeWorkflowFile.Arguments>
                                       </ui:InvokeWorkflowFile>
                                     </Sequence>
+                                    <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_1" />
                                   </Sequence>
                                 </ActivityAction>
                               </Catch>
@@ -643,43 +643,17 @@
       <Variable x:TypeArguments="s:DateTime" Default="[in_wbParentStart]" Name="wbMain_StartTime" />
       <Variable x:TypeArguments="x:String" Default="[in_wbType]" Name="wbMain_Type" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbMain_Level" />
-      <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From &#xA;{ {&quot;Successful&quot;, 0}, &#xA;{&quot;Failed&quot;, 0},&#xA;{&quot;wbType&quot;, wbMain_Type},&#xA;{&quot;wbParent&quot;, wbMain_Parent},&#xA;{&quot;wbLevel&quot;, wbMain_Level},&#xA;{&quot;wbStatus&quot;, &quot;tbd&quot;},&#xA;{&quot;wbFinalExec&quot;, wbMain_FinalExec},&#xA;{&quot;wbDurationSec&quot;, 0},&#xA;{&quot;wbDurationHrs&quot;, 0},&#xA;{&quot;message&quot;, &quot;&quot;},&#xA;{&quot;level&quot;, 0}&#xA;}]" Name="wbMain_Audit" />
+      <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[New system.Collections.Generic.list(of Dictionary(Of String, Object))]" Name="wbMain_Audit" />
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbMain_Parent" />
       <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object) From { {&quot;isQueueItem&quot;, False}, {&quot;TransactionNumber&quot;, 1}, {&quot;RetryNumber&quot;, 0} }]" Name="SystemReserved" />
       <Variable x:TypeArguments="x:Boolean" Default="[in_wbFinalExec]" Name="wbMain_FinalExec" />
     </StateMachine.Variables>
-    <sads:DebugSymbol.Symbol>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</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>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</sads:DebugSymbol.Symbol>
   </StateMachine>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_106" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="If_40" sap:VirtualizedContainerService.HintSize="464,235">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_105" sap:VirtualizedContainerService.HintSize="464,60" />
-      <sap2010:ViewStateData Id="Sequence_265" sap:VirtualizedContainerService.HintSize="486,459">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_85" sap:VirtualizedContainerService.HintSize="313.6,88" />
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_86" sap:VirtualizedContainerService.HintSize="313.6,88" />
-      <sap2010:ViewStateData Id="Sequence_268" sap:VirtualizedContainerService.HintSize="336,340.8">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_43" sap:VirtualizedContainerService.HintSize="486,51">
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_84" sap:VirtualizedContainerService.HintSize="314,87" />
+      <sap2010:ViewStateData Id="If_40" sap:VirtualizedContainerService.HintSize="242,51">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -687,7 +661,40 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_117" sap:VirtualizedContainerService.HintSize="486,60" />
+      <sap2010:ViewStateData Id="Assign_105" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_265" sap:VirtualizedContainerService.HintSize="242,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_85" sap:VirtualizedContainerService.HintSize="314,87" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_86" sap:VirtualizedContainerService.HintSize="314,114">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_268" sap:VirtualizedContainerService.HintSize="336,365">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_43" sap:VirtualizedContainerService.HintSize="242,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_117" sap:VirtualizedContainerService.HintSize="242,60" />
       <sap2010:ViewStateData Id="Sequence_269" sap:VirtualizedContainerService.HintSize="336,123">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
@@ -697,7 +704,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_105" sap:VirtualizedContainerService.HintSize="314,87" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_90" sap:VirtualizedContainerService.HintSize="314,87" />
       <sap2010:ViewStateData Id="Sequence_270" sap:VirtualizedContainerService.HintSize="336,238">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
@@ -744,15 +751,15 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_23" sap:VirtualizedContainerService.HintSize="400,591">
+      <sap2010:ViewStateData Id="Catch`1_23" sap:VirtualizedContainerService.HintSize="404,21">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_17" sap:VirtualizedContainerService.HintSize="414,780">
+      <sap2010:ViewStateData Id="TryCatch_17" sap:VirtualizedContainerService.HintSize="418,1117">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -845,22 +852,22 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_283" sap:VirtualizedContainerService.HintSize="358,622">
+      <sap2010:ViewStateData Id="Sequence_283" sap:VirtualizedContainerService.HintSize="358,619">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_24" sap:VirtualizedContainerService.HintSize="400,691">
+      <sap2010:ViewStateData Id="Catch`1_24" sap:VirtualizedContainerService.HintSize="512,21">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_18" sap:VirtualizedContainerService.HintSize="414,880">
+      <sap2010:ViewStateData Id="TryCatch_18" sap:VirtualizedContainerService.HintSize="526,1337">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -869,7 +876,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_104" sap:VirtualizedContainerService.HintSize="313.6,88" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_106" sap:VirtualizedContainerService.HintSize="313.6,88" />
       <sap2010:ViewStateData Id="Assign_115" sap:VirtualizedContainerService.HintSize="313.6,60.8" />
       <sap2010:ViewStateData Id="Sequence_296" sap:VirtualizedContainerService.HintSize="336,123">
         <sap:WorkflowViewStateService.ViewState>
@@ -880,7 +887,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_107" sap:VirtualizedContainerService.HintSize="314,87" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_96" sap:VirtualizedContainerService.HintSize="314,87" />
       <sap2010:ViewStateData Id="Sequence_284" sap:VirtualizedContainerService.HintSize="336,238">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
@@ -919,7 +926,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_288" sap:VirtualizedContainerService.HintSize="358,522">
+      <sap2010:ViewStateData Id="Sequence_288" sap:VirtualizedContainerService.HintSize="358,519">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -968,7 +975,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_19" sap:VirtualizedContainerService.HintSize="418,480">
+      <sap2010:ViewStateData Id="TryCatch_19" sap:VirtualizedContainerService.HintSize="418,1139">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -1008,7 +1015,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="State_3" sap:VirtualizedContainerService.HintSize="444,953">
+      <sap2010:ViewStateData Id="State_3" sap:VirtualizedContainerService.HintSize="444,1612">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <av:Point x:Key="ShapeLocation">285,380</av:Point>
@@ -1038,17 +1045,17 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="If_46" sap:VirtualizedContainerService.HintSize="464,227" />
-      <sap2010:ViewStateData Id="Sequence_297" sap:VirtualizedContainerService.HintSize="486,393">
+      <sap2010:ViewStateData Id="Sequence_297" sap:VirtualizedContainerService.HintSize="336,123">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_108" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="Sequence_291" sap:VirtualizedContainerService.HintSize="486,238">
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_101" sap:VirtualizedContainerService.HintSize="314,87" />
+      <sap2010:ViewStateData Id="Sequence_291" sap:VirtualizedContainerService.HintSize="336,238">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -1058,15 +1065,16 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="InvokeWorkflowFile_102" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="Sequence_292" sap:VirtualizedContainerService.HintSize="486,298">
+      <sap2010:ViewStateData Id="Sequence_292" sap:VirtualizedContainerService.HintSize="336,298">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_293" sap:VirtualizedContainerService.HintSize="508,1133">
+      <sap2010:ViewStateData Id="Sequence_293" sap:VirtualizedContainerService.HintSize="358,863">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -1084,7 +1092,8 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_295" sap:VirtualizedContainerService.HintSize="358,422">
+      <sap2010:ViewStateData Id="Rethrow_1" sap:VirtualizedContainerService.HintSize="336,22" />
+      <sap2010:ViewStateData Id="Sequence_295" sap:VirtualizedContainerService.HintSize="358,397">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -1092,15 +1101,15 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_27" sap:VirtualizedContainerService.HintSize="400,491">
+      <sap2010:ViewStateData Id="Catch`1_27" sap:VirtualizedContainerService.HintSize="404,21">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_20" sap:VirtualizedContainerService.HintSize="414,680">
+      <sap2010:ViewStateData Id="TryCatch_20" sap:VirtualizedContainerService.HintSize="418,1117">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -1183,7 +1192,7 @@
             <av:Point x:Key="ShapeLocation">70,12.4</av:Point>
             <x:Double x:Key="StateContainerWidth">745.60000000000014</x:Double>
             <x:Double x:Key="StateContainerHeight">682.80000000000007</x:Double>
-            <av:PointCollection x:Key="ConnectorLocation">130,50 160,50 160,60.9 274.5,60.9</av:PointCollection>
+            <av:PointCollection x:Key="ConnectorLocation">130,49.9 160,49.9 160,49.7 274.5,49.7</av:PointCollection>
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
