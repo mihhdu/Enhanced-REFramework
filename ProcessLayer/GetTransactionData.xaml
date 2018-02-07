@@ -23,7 +23,6 @@
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
-    <x:Property Name="in_TaskEnv" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -53,6 +52,7 @@
       <x:String>UiPath.Core.Activities</x:String>
       <x:String>System.Windows.Markup</x:String>
       <x:String>Microsoft.Activities</x:String>
+      <x:String>System.Xml.Serialization</x:String>
     </sco:Collection>
   </TextExpression.NamespacesForImplementation>
   <TextExpression.ReferencesForImplementation>
@@ -82,14 +82,68 @@
   </TextExpression.ReferencesForImplementation>
   <Sequence sap2010:Annotation.AnnotationText="##Business Process Layer##&#xA;Description: Get data from spreadsheets, databases, email, web API or UiPath server queues. If no new data, set out_TransactionItem to Nothing. &#xA;&#xA;For a linear process (not repetitive), set out_TransactionItem only for in_TransactionNumber 1 - first and only transaction. &#xA;&#xA;If the process is repeatable, set io_TransactionData once for in_TransactionNumber 1, then assign a new out_TransactionItem by using the in_TransactionNumber to index io_TransactionData. Be aware that, at the end of the io_TransactionData collection, it is your responsibility to set out_TransactionItem to Nothing, thus ending the process." DisplayName="GetTransactionData" sap2010:WorkflowViewState.IdRef="Sequence_8">
     <Sequence DisplayName="Processing" sap2010:WorkflowViewState.IdRef="Sequence_7">
+      <Switch x:TypeArguments="x:Int32" sap2010:Annotation.AnnotationText="Run This service if you need to get data from an Application, website or Resource that might fail." DisplayName="Run GetData Service according to settings" Expression="[cint(in_Config.Item(&quot;SystemTask2_Enable&quot;))]" sap2010:WorkflowViewState.IdRef="Switch`1_1">
+        <x:Null x:Key="0" />
+        <If x:Key="1" Condition="[in_TransactionNumber =1]" DisplayName="Run only first Time" sap2010:WorkflowViewState.IdRef="If_1">
+          <If.Then>
+            <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" sap2010:Annotation.AnnotationText="Run only once" DisplayName="Invoke FirstRunMain workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_1" UnSafe="False" WorkflowFileName="ServicesLayer\GetData\Main.xaml">
+              <ui:InvokeWorkflowFile.Arguments>
+                <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[in_Config.Item("SystemTask2_Name").ToString]</InArgument>
+                <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[in_wbLevel+1]</InArgument>
+                <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[in_wbType]</InArgument>
+                <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec]</InArgument>
+                <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
+                <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
+                <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_TransactionData">[io_TransactionData]</InOutArgument>
+              </ui:InvokeWorkflowFile.Arguments>
+            </ui:InvokeWorkflowFile>
+          </If.Then>
+        </If>
+        <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" x:Key="2" sap2010:Annotation.AnnotationText="Run only once" DisplayName="Invoke FirstRunMain workflow" UnSafe="False" WorkflowFileName="ServicesLayer\GetData\Main.xaml">
+          <ui:InvokeWorkflowFile.Arguments>
+            <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[in_Config.Item("SystemTask2_Name").ToString]</InArgument>
+            <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[in_wbLevel+1]</InArgument>
+            <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[in_wbType]</InArgument>
+            <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec]</InArgument>
+            <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
+            <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
+            <InOutArgument x:TypeArguments="sd:DataTable" x:Key="io_TransactionData">[io_TransactionData]</InOutArgument>
+          </ui:InvokeWorkflowFile.Arguments>
+          <sap2010:WorkflowViewState.IdRef>InvokeWorkflowFile_3</sap2010:WorkflowViewState.IdRef>
+        </ui:InvokeWorkflowFile>
+      </Switch>
       <ui:GetQueueItem TimeoutMS="{x:Null}" DisplayName="Get Transaction Item" sap2010:WorkflowViewState.IdRef="GetQueueItem_2" QueueType="[in_Config(&quot;OrchestratorQueueName&quot;).ToString]" TransactionItem="[out_TransactionItem]" />
     </Sequence>
-    <sads:DebugSymbol.Symbol>d3hDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcR2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwFUwNYDgIBAVQFVhACAQJVB1XvAQIBA1WLAVXEAQIBBlXVAVXsAQIBBA==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3hDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcR2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwbUwN2DgIBAVQFdBACAQJVB3IQAgEIcwdz7wECAQNV8wFVqwICAQlXCWUOAgEbZglxIQIBC3OLAXPEAQIBBnPVAXPsAQIBBFchVzwCARxZDWMlAgEeakhqUwIBGWhGaHMCARdtbG12AgEVbE9sYQIBE2tMa1wCARFuVm5qAgEPZsIBZuMBAgEOaUZpVAIBDF1MXVcCASxbSlt3AgEqYHBgegIBKF9TX2UCASZeUF5gAgEkYVphbgIBIlnzAVmUAgIBIVxKXFgCAR8=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="GetQueueItem_2" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="222,146">
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_1" sap:VirtualizedContainerService.HintSize="314,114">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="464,262" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_3" sap:VirtualizedContainerService.HintSize="314,114">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Switch`1_1" sap:VirtualizedContainerService.HintSize="476,384">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="GetQueueItem_2" sap:VirtualizedContainerService.HintSize="476,22" />
+      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="498,570">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -97,7 +151,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="244,612">
+      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="520,871">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -106,7 +160,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="284,692" />
+      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="560,1071" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
