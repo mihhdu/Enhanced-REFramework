@@ -13,7 +13,6 @@
   <x:Members>
     <x:Property Name="in_TransactionNumber" Type="InArgument(x:Int32)" />
     <x:Property Name="in_Config" Type="InArgument(scg:Dictionary(x:String, x:Object))" />
-    <x:Property Name="out_TransactionItem" Type="OutArgument(s:Tuple(x:String, x:Object))" />
     <x:Property Name="io_TransactionData" Type="InOutArgument(scg:List(s:Tuple(x:String, x:Object)))" />
     <x:Property Name="in_wbType" Type="InArgument(x:String)" />
     <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
@@ -22,6 +21,7 @@
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
+    <x:Property Name="io_TransactionItem" Type="InOutArgument(s:Tuple(x:String, x:Object))" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -83,7 +83,7 @@
       <If Condition="[in_TransactionNumber = 1]" DisplayName="Get TransactionData on the first run and output it" sap2010:WorkflowViewState.IdRef="If_1">
         <If.Then>
           <Sequence DisplayName="Fetch Data and write it to global objects" sap2010:WorkflowViewState.IdRef="Sequence_9">
-            <ui:InvokeCode ContinueOnError="{x:Null}" Code="Dim loopIndex As Int32 = 0&#xD;&#xA;If (io_TransactionData Is Nothing) &#xD;&#xA;	 io_TransactionData = New System.Collections.Generic.List(Of system.Tuple(Of String,Object))()&#xD;&#xA;End If&#xD;&#xA;While loopIndex &lt; in_FillNumber &#xD;&#xA; Dim rng As System.Random = New system.Random(CInt(Date.Now.AddTicks(loopIndex).Ticks And &amp;h0000FFFF))&#xD;&#xA; io_TransactionData.Add(new system.Tuple(Of String, object)(loopIndex.ToString,rng.NextDouble))&#xD;&#xA; loopIndex = loopIndex + 1&#xD;&#xA;End While" DisplayName="Generate a Sorted List of &lt;index, random number&gt;" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
+            <ui:InvokeCode ContinueOnError="{x:Null}" Code="Dim loopIndex As Int32 = 0&#xA;If (io_TransactionData Is Nothing) &#xA;  io_TransactionData = New System.Collections.Generic.List(Of system.Tuple(Of String,Object))()&#xA;End If&#xA;While loopIndex &lt; in_FillNumber &#xA; Dim rng As System.Random = New system.Random(CInt(Date.Now.AddTicks(loopIndex).Ticks And &amp;h0000FFFF))&#xA; io_TransactionData.Add(new system.Tuple(Of String, object)(loopIndex.ToString,rng.NextDouble))&#xA; loopIndex = loopIndex + 1&#xA;End While" DisplayName="Generate a Sorted List of &lt;index, random number&gt;" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
               <ui:InvokeCode.Arguments>
                 <InArgument x:TypeArguments="x:Int32" x:Key="in_FillNumber">50</InArgument>
                 <InOutArgument x:TypeArguments="scg:List(s:Tuple(x:String, x:Object))" x:Key="io_TransactionData">[io_TransactionData]</InOutArgument>
@@ -96,7 +96,7 @@
         <If.Then>
           <Assign sap2010:WorkflowViewState.IdRef="Assign_1">
             <Assign.To>
-              <OutArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[out_TransactionItem]</OutArgument>
+              <OutArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[io_TransactionItem]</OutArgument>
             </Assign.To>
             <Assign.Value>
               <InArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[io_TransactionData.Item(in_TransactionNumber-1)]</InArgument>
@@ -106,7 +106,7 @@
         <If.Else>
           <Assign sap2010:WorkflowViewState.IdRef="Assign_2">
             <Assign.To>
-              <OutArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[out_TransactionItem]</OutArgument>
+              <OutArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[io_TransactionItem]</OutArgument>
             </Assign.To>
             <Assign.Value>
               <InArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[Nothing]</InArgument>
@@ -115,7 +115,7 @@
         </If.Else>
       </If>
     </Sequence>
-    <sads:DebugSymbol.Symbol>d48BQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcR2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwQUQN3DgIBAVIFdRACAQJTB14MAgERXwd0DAIBA1MVUzECARJVC1wWAgEUXxVfTAIBBGELaBQCAQtrC3IUAgEHVg1bHQIBFWZJZnoCAQ5jSmNfAgEMcElwUgIBCm1KbV8CAQhYTVhPAgEYWXNZhwECARY=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d48BQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcR2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwQUQN3DgIBAVIFdRACAQJTB14MAgERXwd0DAIBA1MVUzECARJVC1wWAgEUXxVfTAIBBGELaBQCAQtrC3IUAgEHVg1bHQIBFWZJZnoCAQ5jSmNeAgEMcElwUgIBCm1KbV4CAQhYTVhPAgEYWXNZhwECARY=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -162,7 +162,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="593,1269" />
+      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="593,1229" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
