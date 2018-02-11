@@ -80,8 +80,30 @@
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
   <Sequence sap2010:Annotation.AnnotationText="##Business Process Layer##&#xA;Description: Get data from spreadsheets, databases, email, web API or UiPath server queues. If no new data, set out_TransactionItem to Nothing. &#xA;&#xA;For a linear process (not repetitive), set out_TransactionItem only for in_TransactionNumber 1 - first and only transaction. &#xA;&#xA;If the process is repeatable, set io_TransactionData once for in_TransactionNumber 1, then assign a new out_TransactionItem by using the in_TransactionNumber to index io_TransactionData. Be aware that, at the end of the io_TransactionData collection, it is your responsibility to set out_TransactionItem to Nothing, thus ending the process." DisplayName="GetTransactionData" sap2010:WorkflowViewState.IdRef="Sequence_8">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:Boolean" Name="flagFirstApplicationRun" />
+      <Variable x:TypeArguments="x:Boolean" Name="flagFirstLocalTransactionRun" />
+    </Sequence.Variables>
+    <Sequence sap2010:Annotation.AnnotationText="Set Helper Flags and invoke GetData Service based on Config setting" DisplayName="Set Helper Flags" sap2010:WorkflowViewState.IdRef="Sequence_10">
+      <Assign DisplayName="Set First Application Run flag" sap2010:WorkflowViewState.IdRef="Assign_3">
+        <Assign.To>
+          <OutArgument x:TypeArguments="x:Boolean">[flagFirstApplicationRun]</OutArgument>
+        </Assign.To>
+        <Assign.Value>
+          <InArgument x:TypeArguments="x:Boolean">[in_TransactionNumber = 1 and in_RetryNumber = 0]</InArgument>
+        </Assign.Value>
+      </Assign>
+      <Assign DisplayName="Set First Local Transaction Run flag" sap2010:WorkflowViewState.IdRef="Assign_4">
+        <Assign.To>
+          <OutArgument x:TypeArguments="x:Boolean">[flagFirstLocalTransactionRun]</OutArgument>
+        </Assign.To>
+        <Assign.Value>
+          <InArgument x:TypeArguments="x:Boolean">[in_RetryNumber = 0]</InArgument>
+        </Assign.Value>
+      </Assign>
+    </Sequence>
     <Sequence DisplayName="Processing" sap2010:WorkflowViewState.IdRef="Sequence_7">
-      <If Condition="[in_TransactionNumber = 1]" DisplayName="Get TransactionData on the first run and output it" sap2010:WorkflowViewState.IdRef="If_1">
+      <If Condition="[flagFirstApplicationRun]" DisplayName="Get TransactionData on the first run and output it" sap2010:WorkflowViewState.IdRef="If_1">
         <If.Then>
           <Sequence DisplayName="Fetch Data and write it to global objects" sap2010:WorkflowViewState.IdRef="Sequence_9">
             <ui:InvokeCode ContinueOnError="{x:Null}" Code="Dim loopIndex As Int32 = 0&#xA;If (io_TransactionData Is Nothing) &#xA;  io_TransactionData = New System.Collections.Generic.List(Of system.Tuple(Of String,Object))()&#xA;End If&#xA;While loopIndex &lt; in_FillNumber &#xA; Dim rng As System.Random = New system.Random(CInt(Date.Now.AddTicks(loopIndex).Ticks And &amp;h0000FFFF))&#xA; io_TransactionData.Add(new system.Tuple(Of String, object)(loopIndex.ToString,rng.NextDouble))&#xA; loopIndex = loopIndex + 1&#xA;End While" DisplayName="Generate a Sorted List of &lt;index, random number&gt;" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
@@ -116,10 +138,20 @@
         </If.Else>
       </If>
     </Sequence>
-    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcR2V0U2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwQUgN4DgIBAVMFdhACAQJUB18MAgERYAd1DAIBA1QVVDECARJWC10WAgEUYBVgTAIBBGILaRQCAQtsC3MUAgEHVw1cHQIBFWdJZ3oCAQ5kSmReAgEMcUlxUgIBCm5Kbl4CAQhZTVlPAgEYWnNahwECARY=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcR2V0U2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwXUgOOAQ4CAQFXBWgQAgEZaQWMARACAQJYB18QAgEfYAdnEAIBGmoHdQwCARF2B4sBDAIBA10zXWQCASJaNFpNAgEgZTNlRwIBHWI0YlICARtqFWowAgESbAtzFgIBFHYVdkwCAQR4C38UAgELggELiQEUAgEHbQ1yHQIBFX1JfXoCAQ56SnpeAgEMhwFJhwFSAgEKhAFKhAFeAgEIb01vTwIBGHBzcIcBAgEW</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
+      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_10" sap:VirtualizedContainerService.HintSize="531,326">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="InvokeCode_1" sap:VirtualizedContainerService.HintSize="314,164" />
       <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="336,288">
         <sap:WorkflowViewStateService.ViewState>
@@ -154,7 +186,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="553,1109">
+      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="553,1475">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -163,7 +195,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="593,1189" />
+      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="593,1555" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
