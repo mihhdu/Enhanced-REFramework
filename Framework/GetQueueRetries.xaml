@@ -3,12 +3,14 @@
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
  xmlns:njl="clr-namespace:Newtonsoft.Json.Linq;assembly=Newtonsoft.Json"
+ xmlns:s="clr-namespace:System;assembly=mscorlib"
  xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
  xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
  xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
  xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
  xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib"
  xmlns:ss="clr-namespace:System.Security;assembly=mscorlib"
+ xmlns:ssa="clr-namespace:System.Security.Authentication;assembly=System"
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
@@ -130,60 +132,90 @@
           </Assign>
           <If sap2010:Annotation.AnnotationText="Try to find information about the transaction we are processing by contacting Orchestrator server and requesting MaxRetryNumber" Condition="[cint(io_SystemReserved.Item(&quot;TransactionNumber&quot;)) = 1]" DisplayName="If first Transaction" sap2010:WorkflowViewState.IdRef="If_50">
             <If.Then>
-              <Sequence DisplayName="Obtain Information about Queue" sap2010:WorkflowViewState.IdRef="Sequence_302">
-                <Sequence.Variables>
-                  <Variable x:TypeArguments="x:String" Name="token" />
-                  <Variable x:TypeArguments="njl:JObject" Name="jsonQueueProcessingStatus" />
-                  <Variable x:TypeArguments="x:String" Name="username" />
-                  <Variable x:TypeArguments="ss:SecureString" Name="securePassword" />
-                </Sequence.Variables>
-                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetAppCredentials workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_1" UnSafe="False" WorkflowFileName="Framework\GetAppCredentials.xaml">
-                  <ui:InvokeWorkflowFile.Arguments>
-                    <OutArgument x:TypeArguments="x:String" x:Key="out_Username">[username]</OutArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_Credential">[io_Config("OrchestratorCredentialName").ToString]</InArgument>
-                    <OutArgument x:TypeArguments="ss:SecureString" x:Key="out_Password">[securePassword]</OutArgument>
-                  </ui:InvokeWorkflowFile.Arguments>
-                </ui:InvokeWorkflowFile>
-                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetAuthenticateToken workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_2" UnSafe="False" WorkflowFileName="Framework\Orchestrator\GetAuthenticateToken.xaml">
-                  <ui:InvokeWorkflowFile.Arguments>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_orchestratorURL">[io_Config("OrchestratorURL").ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_tenancyName">[io_Config("OrchestratorTenancyName").ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_usernameOrEmailAddress">[username]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_password">[new System.Net.NetworkCredential(string.Empty, securePassword).Password]</InArgument>
-                    <OutArgument x:TypeArguments="x:String" x:Key="out_token">[token]</OutArgument>
-                  </ui:InvokeWorkflowFile.Arguments>
-                </ui:InvokeWorkflowFile>
-                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetQueueProcessingStatus workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_3" UnSafe="False" WorkflowFileName="Framework\Orchestrator\Queues\GetQueueProcessingStatus.xaml">
-                  <ui:InvokeWorkflowFile.Arguments>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_orchestratorURL">[io_Config("OrchestratorURL").ToString]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_token">[token]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_queueName">[io_Config("OrchestratorQueueName").ToString]</InArgument>
-                    <OutArgument x:TypeArguments="njl:JObject" x:Key="out_jsonQueueProcessingStatus">[jsonQueueProcessingStatus]</OutArgument>
-                  </ui:InvokeWorkflowFile.Arguments>
-                </ui:InvokeWorkflowFile>
-                <If Condition="[string.Compare(jsonQueueProcessingStatus.Item(&quot;QueueDefinitionAcceptAutomaticallyRetry&quot;).ToString, &quot;true&quot;, true) = 0]" DisplayName="If Queue AutoRetry is enabled, MaxRetryNumber becomes the Queue Retry number" sap2010:WorkflowViewState.IdRef="If_48">
-                  <If.Then>
-                    <Assign DisplayName="Assign MaxRetryNumber" sap2010:WorkflowViewState.IdRef="Assign_117">
-                      <Assign.To>
-                        <OutArgument x:TypeArguments="x:Object">[io_Config("MaxRetryNumber")]</OutArgument>
-                      </Assign.To>
-                      <Assign.Value>
-                        <InArgument x:TypeArguments="x:Object">[jsonQueueProcessingStatus.Item("QueueDefinitionMaxNumberOfRetries")]</InArgument>
-                      </Assign.Value>
-                    </Assign>
-                  </If.Then>
-                  <If.Else>
-                    <Assign DisplayName="Assign MaxRetryNumber" sap2010:WorkflowViewState.IdRef="Assign_118">
-                      <Assign.To>
-                        <OutArgument x:TypeArguments="x:Object">[io_Config("MaxRetryNumber")]</OutArgument>
-                      </Assign.To>
-                      <Assign.Value>
-                        <InArgument x:TypeArguments="x:Object">[0]</InArgument>
-                      </Assign.Value>
-                    </Assign>
-                  </If.Else>
-                </If>
-              </Sequence>
+              <TryCatch DisplayName="Try to obtain information about he queue. " sap2010:WorkflowViewState.IdRef="TryCatch_1">
+                <TryCatch.Try>
+                  <Sequence DisplayName="Obtain Information about Queue" sap2010:WorkflowViewState.IdRef="Sequence_302">
+                    <Sequence.Variables>
+                      <Variable x:TypeArguments="x:String" Name="token" />
+                      <Variable x:TypeArguments="njl:JObject" Name="jsonQueueProcessingStatus" />
+                      <Variable x:TypeArguments="x:String" Name="username" />
+                      <Variable x:TypeArguments="ss:SecureString" Name="securePassword" />
+                    </Sequence.Variables>
+                    <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetAppCredentials workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_1" UnSafe="False" WorkflowFileName="Framework\GetAppCredentials.xaml">
+                      <ui:InvokeWorkflowFile.Arguments>
+                        <OutArgument x:TypeArguments="x:String" x:Key="out_Username">[username]</OutArgument>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_Credential">[io_Config("OrchestratorCredentialName").ToString]</InArgument>
+                        <OutArgument x:TypeArguments="ss:SecureString" x:Key="out_Password">[securePassword]</OutArgument>
+                      </ui:InvokeWorkflowFile.Arguments>
+                    </ui:InvokeWorkflowFile>
+                    <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetAuthenticateToken workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_2" UnSafe="False" WorkflowFileName="Framework\Orchestrator\GetAuthenticateToken.xaml">
+                      <ui:InvokeWorkflowFile.Arguments>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_orchestratorURL">[io_Config("OrchestratorURL").ToString]</InArgument>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_tenancyName">[io_Config("OrchestratorTenancyName").ToString]</InArgument>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_usernameOrEmailAddress">[username]</InArgument>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_password">[new System.Net.NetworkCredential(string.Empty, securePassword).Password]</InArgument>
+                        <OutArgument x:TypeArguments="x:String" x:Key="out_token">[token]</OutArgument>
+                      </ui:InvokeWorkflowFile.Arguments>
+                    </ui:InvokeWorkflowFile>
+                    <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke GetQueueProcessingStatus workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_3" UnSafe="False" WorkflowFileName="Framework\Orchestrator\Queues\GetQueueProcessingStatus.xaml">
+                      <ui:InvokeWorkflowFile.Arguments>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_orchestratorURL">[io_Config("OrchestratorURL").ToString]</InArgument>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_token">[token]</InArgument>
+                        <InArgument x:TypeArguments="x:String" x:Key="in_queueName">[io_Config("OrchestratorQueueName").ToString]</InArgument>
+                        <OutArgument x:TypeArguments="njl:JObject" x:Key="out_jsonQueueProcessingStatus">[jsonQueueProcessingStatus]</OutArgument>
+                      </ui:InvokeWorkflowFile.Arguments>
+                    </ui:InvokeWorkflowFile>
+                    <If Condition="[string.Compare(jsonQueueProcessingStatus.Item(&quot;QueueDefinitionAcceptAutomaticallyRetry&quot;).ToString, &quot;true&quot;, true) = 0]" DisplayName="If Queue AutoRetry is enabled, MaxRetryNumber becomes the Queue Retry number" sap2010:WorkflowViewState.IdRef="If_48">
+                      <If.Then>
+                        <Assign DisplayName="Assign MaxRetryNumber" sap2010:WorkflowViewState.IdRef="Assign_117">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Object">[io_Config("MaxRetryNumber")]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Object">[jsonQueueProcessingStatus.Item("QueueDefinitionMaxNumberOfRetries")]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                      </If.Then>
+                      <If.Else>
+                        <Assign DisplayName="Assign MaxRetryNumber" sap2010:WorkflowViewState.IdRef="Assign_118">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Object">[io_Config("MaxRetryNumber")]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Object">[0]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                      </If.Else>
+                    </If>
+                  </Sequence>
+                </TryCatch.Try>
+                <TryCatch.Catches>
+                  <Catch x:TypeArguments="ssa:AuthenticationException" sap2010:WorkflowViewState.IdRef="Catch`1_1">
+                    <ActivityAction x:TypeArguments="ssa:AuthenticationException">
+                      <ActivityAction.Argument>
+                        <DelegateInArgument x:TypeArguments="ssa:AuthenticationException" Name="exception" />
+                      </ActivityAction.Argument>
+                      <ui:LogMessage DisplayName="Log authentication error" sap2010:WorkflowViewState.IdRef="LogMessage_1" Level="Error" Message="[&quot;Credentials not found: &quot;+exception.Message]" />
+                    </ActivityAction>
+                  </Catch>
+                  <Catch x:TypeArguments="ui:OrchestratorHttpException" sap2010:WorkflowViewState.IdRef="Catch`1_2">
+                    <ActivityAction x:TypeArguments="ui:OrchestratorHttpException">
+                      <ActivityAction.Argument>
+                        <DelegateInArgument x:TypeArguments="ui:OrchestratorHttpException" Name="exception" />
+                      </ActivityAction.Argument>
+                      <ui:LogMessage DisplayName="Log Orchestrator error" sap2010:WorkflowViewState.IdRef="LogMessage_2" Level="Error" Message="[&quot;Orchestrator API encountered exception &quot;+exception.Message+&quot; at Source &quot; + exception.Source]" />
+                    </ActivityAction>
+                  </Catch>
+                  <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_3">
+                    <ActivityAction x:TypeArguments="s:Exception">
+                      <ActivityAction.Argument>
+                        <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+                      </ActivityAction.Argument>
+                      <ui:LogMessage DisplayName="Log general error" sap2010:WorkflowViewState.IdRef="LogMessage_3" Level="Error" Message="[&quot;Exception &quot;+exception.Message + &quot; at Source &quot;+exception.Source]" />
+                    </ActivityAction>
+                  </Catch>
+                </TryCatch.Catches>
+              </TryCatch>
             </If.Then>
           </If>
         </Sequence>
@@ -199,18 +231,18 @@
         </Assign>
       </If.Else>
     </If>
-    <sads:DebugSymbol.Symbol>d3JDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcR2V0UXVldWVSZXRyaWVzLnhhbWwqbwPLAQ4CAQFwBckBCgIBAnATcH4CAQNyCb0BFAIBCMABCccBEgIBBHMLehQCATl7C4IBFAIBNYMBC7wBEAIBCcUBNMUBOwIBB8IBNcIBXAIBBXg2eDwCATx1N3VeAgE6gAE2gAFSAgE4fTd9XgIBNoMBvQGDAYACAgEKhQEPugEaAgEMjAERkgEpAgEtkwERmwEpAgEhnAERowEpAgEXpAERuQEWAgENkAFZkAFpAgEzjwFSjwGEAQIBMY4BUo4BXAIBL4wBygGMAewBAgEulQFXlQF+AgErmQFPmQFWAgEplwFelwFoAgEnmAFQmAGZAQIBJZYBU5YBggECASOTAc0BkwH/AQIBIp4BV54BfgIBH58BTZ8BVAIBHZwB0QGcAY4CAgEcoAFRoAF+AgEaoQFmoQGBAQIBGKQBH6QBqwECAQ6mARWtAR4CAROwARW3AR4CAQ+rAUCrAYUBAgEWqAFBqAFeAgEUtQFAtQFDAgESsgFBsgFeAgEQ</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3JDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcR2V0UXVldWVSZXRyaWVzLnhhbWwxcQPrAQ4CAQFyBekBCgIBAnITcn4CAQN0Cd0BFAIBCOABCecBEgIBBHULfBQCAUN9C4QBFAIBP4UBC9wBEAIBCeUBNOUBOwIBB+IBNeIBXAIBBXo2ejwCAUZ3N3deAgFEggE2ggFSAgFCfzd/XgIBQIUBvQGFAYACAgEKhwEP2gEaAgEMiQETvgEeAgEWxgEXxgHOAQIBE84BF84BhwICARHWARfWAeUBAgENkAEVlgEtAgE3lwEVnwEtAgEroAEVpwEtAgEhqAEVvQEaAgEXxgGSAcYBywECARTOAZABzgGEAgIBEtYBiwHWAeIBAgEOlAFdlAFtAgE9kwFWkwGIAQIBO5IBVpIBYAIBOZABzgGQAfABAgE4mQFbmQGCAQIBNZ0BU50BWgIBM5sBYpsBbAIBMZwBVJwBnQECAS+aAVeaAYYBAgEtlwHRAZcBgwICASyiAVuiAYIBAgEpowFRowFYAgEnoAHVAaABkgICASakAVWkAYIBAgEkpQFqpQGFAQIBIqgBI6gBrwECARiqARmxASICAR20ARm7ASICARmvAUSvAYkBAgEgrAFFrAFiAgEeuQFEuQFHAgEctgFFtgFiAgEa</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Assign_121" sap:VirtualizedContainerService.HintSize="657.6,60.8" />
-      <sap2010:ViewStateData Id="Assign_120" sap:VirtualizedContainerService.HintSize="657.6,60.8" />
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_1" sap:VirtualizedContainerService.HintSize="510.4,88" />
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_2" sap:VirtualizedContainerService.HintSize="510.4,88" />
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_3" sap:VirtualizedContainerService.HintSize="510.4,88" />
-      <sap2010:ViewStateData Id="Assign_117" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="Assign_118" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="If_48" sap:VirtualizedContainerService.HintSize="510.4,211.2">
+      <sap2010:ViewStateData Id="Assign_121" sap:VirtualizedContainerService.HintSize="539,60" />
+      <sap2010:ViewStateData Id="Assign_120" sap:VirtualizedContainerService.HintSize="539,60" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_1" sap:VirtualizedContainerService.HintSize="509,87" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_2" sap:VirtualizedContainerService.HintSize="509,87" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_3" sap:VirtualizedContainerService.HintSize="509,87" />
+      <sap2010:ViewStateData Id="Assign_117" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_118" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_48" sap:VirtualizedContainerService.HintSize="509,208">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -218,7 +250,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_302" sap:VirtualizedContainerService.HintSize="532.8,720">
+      <sap2010:ViewStateData Id="Sequence_302" sap:VirtualizedContainerService.HintSize="531,713">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -226,7 +258,35 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_50" sap:VirtualizedContainerService.HintSize="657.6,914.4">
+      <sap2010:ViewStateData Id="LogMessage_1" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="400,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_2" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Catch`1_2" sap:VirtualizedContainerService.HintSize="400,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="LogMessage_3" sap:VirtualizedContainerService.HintSize="314,91" />
+      <sap2010:ViewStateData Id="Catch`1_3" sap:VirtualizedContainerService.HintSize="400,160">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="414,366" />
+      <sap2010:ViewStateData Id="If_50" sap:VirtualizedContainerService.HintSize="539,556">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -235,15 +295,15 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_305" sap:VirtualizedContainerService.HintSize="680,1240">
+      <sap2010:ViewStateData Id="Sequence_305" sap:VirtualizedContainerService.HintSize="561,880">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_122" sap:VirtualizedContainerService.HintSize="243.2,60.8" />
-      <sap2010:ViewStateData Id="If_49" sap:VirtualizedContainerService.HintSize="947.2,1390.4">
+      <sap2010:ViewStateData Id="Assign_122" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_49" sap:VirtualizedContainerService.HintSize="828,1028">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -251,7 +311,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_304" sap:VirtualizedContainerService.HintSize="969.6,1543.2">
+      <sap2010:ViewStateData Id="Sequence_304" sap:VirtualizedContainerService.HintSize="850,1179">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -259,7 +319,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="isQueueItem_1" sap:VirtualizedContainerService.HintSize="1009.6,1623.2" />
+      <sap2010:ViewStateData Id="isQueueItem_1" sap:VirtualizedContainerService.HintSize="890,1259" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
