@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="Statelss" this:Statelss.in_ContinueOnError="False" this:Statelss.in_TimeoutMS="5000" this:Statelss.in_DebugMessages="False"
+﻿<Activity mc:Ignorable="sap sap2010 sads" x:Class="Statelss" this:Statelss.in_DebugMessages="False" this:Statelss.in_MaxRetryNumber="3"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
@@ -11,11 +11,10 @@
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
-    <x:Property Name="in_States" Type="InArgument(scg:List(scg:KeyValuePair(x:String, scg:KeyValuePair(x:String, scg:List(x:String)))))" />
-    <x:Property Name="in_ContinueOnError" Type="InArgument(x:Boolean)" />
-    <x:Property Name="in_TimeoutMS" Type="InArgument(x:Int32)" />
+    <x:Property Name="in_States" Type="InArgument(scg:List(scg:KeyValuePair(x:String, scg:KeyValuePair(x:String, scg:Dictionary(x:String, x:Object)))))" />
     <x:Property Name="in_DebugMessages" Type="InArgument(x:Boolean)" />
     <x:Property Name="out_CompletedSuccessfully" Type="OutArgument(x:Boolean)" />
+    <x:Property Name="in_MaxRetryNumber" Type="InArgument(x:Int32)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -70,50 +69,139 @@
       <AssemblyReference>System.Runtime.WindowsRuntime</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
-  <Sequence sap2010:Annotation.AnnotationText="Go through all the states defined and try to execute the actions using the given selector, the given action, and the given arguments for the action. Success is declared if we are able to execute the final action" DisplayName="Stateless" sap2010:WorkflowViewState.IdRef="Sequence_1">
+  <Sequence sap2010:Annotation.AnnotationText="Go through all the states defined and try to execute the actions using the given selector, the given action, and the given arguments for the action. Success is declared if we are able to execute the final action&#xA;&#xA;Dictionary&lt;string, object&gt; defines all command options. Key sensitive. Implemented options are the following:&#xA;&#xA;New dictionary(Of String, Object) From {&#xA;{&quot;TimeoutMS&quot;, 5000},&#xA;{&quot;ContinueOnError&quot;, True},&#xA;{&quot;ActionMethod&quot;, &quot;Hardware&quot;} //&quot;Hardware&quot;, &quot;Simulate&quot;, &quot;SendWindowMessages&quot; are the accepted values. Anything other means &quot;Hardware&quot;&#xA;{&quot;Text&quot;, &quot;Text to type, required for type action&quot;&#xA;}" DisplayName="Stateless" sap2010:WorkflowViewState.IdRef="Sequence_1">
     <Sequence.Variables>
       <Variable x:TypeArguments="x:Int32" Default="0" Name="indexOfStates" />
+      <Variable x:TypeArguments="x:Boolean" Default="False" Name="scanMode" />
+      <Variable x:TypeArguments="x:Int32" Default="0" Name="RetryNumber" />
     </Sequence.Variables>
     <While sap2010:Annotation.AnnotationText="Cycle through all the states to execute" DisplayName="For each pair of states, find state and execute action" sap2010:WorkflowViewState.IdRef="While_1" Condition="[indexOfStates &lt; in_States.Count]">
       <Sequence sap2010:Annotation.AnnotationText="Find the element corresponding to the selector" DisplayName="Find State" sap2010:WorkflowViewState.IdRef="Sequence_2">
         <Sequence.Variables>
           <Variable x:TypeArguments="ui:UiElement" Default="[Nothing]" Name="element" />
+          <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Name="actionArguments" />
+          <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New dictionary(Of String, Object) From {&#xA;{&quot;TimeoutMS&quot;, 5000},&#xA;{&quot;ContinueOnError&quot;, True},&#xA;{&quot;ActionMethod&quot;, &quot;Hardware&quot;},&#xA;{&quot;ScanTimeoutMS&quot;, 1000},&#xA;{&quot;Text&quot;, &quot;&quot;}&#xA;}]" Name="defaultActionArguments" />
+          <Variable x:TypeArguments="x:String" Name="selector" />
+          <Variable x:TypeArguments="x:String" Name="action" />
+          <Variable x:TypeArguments="x:Int32" Name="TimeoutMS" />
         </Sequence.Variables>
-        <ui:WaitUiElementAppear ContinueOnError="[in_ContinueOnError]" DisplayName="Find Element" FoundElement="[element]" sap2010:WorkflowViewState.IdRef="WaitUiElementAppear_1" WaitActive="False" WaitVisible="False">
-          <ui:WaitUiElementAppear.Target>
-            <ui:Target ClippingRegion="{x:Null}" Element="{x:Null}" Selector="[in_States.Item(indexOfStates).Key]" TimeoutMS="[in_TimeoutMS]" WaitForReady="INTERACTIVE" />
-          </ui:WaitUiElementAppear.Target>
-        </ui:WaitUiElementAppear>
+        <Sequence DisplayName="Decode Input Data" sap2010:WorkflowViewState.IdRef="Sequence_15">
+          <Sequence sap2010:Annotation.AnnotationText="determine arguments provided for the action to be executed and add defaults if those are not provided, like Timeout or Continue on Error options" DisplayName="Determine Action Arguments" sap2010:WorkflowViewState.IdRef="Sequence_11">
+            <If Condition="[in_States.Item(indexOfStates).Value.Value isNot Nothing]" DisplayName="If dictionary exists in input" sap2010:WorkflowViewState.IdRef="If_15">
+              <If.Then>
+                <Assign DisplayName="Read Action arguments" sap2010:WorkflowViewState.IdRef="Assign_4">
+                  <Assign.To>
+                    <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</OutArgument>
+                  </Assign.To>
+                  <Assign.Value>
+                    <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[in_States.Item(indexOfStates).Value.Value]</InArgument>
+                  </Assign.Value>
+                </Assign>
+              </If.Then>
+              <If.Else>
+                <Assign DisplayName="Init empty dictionary" sap2010:WorkflowViewState.IdRef="Assign_18">
+                  <Assign.To>
+                    <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</OutArgument>
+                  </Assign.To>
+                  <Assign.Value>
+                    <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[new Dictionary(of string, object)]</InArgument>
+                  </Assign.Value>
+                </Assign>
+              </If.Else>
+            </If>
+            <ui:ForEach x:TypeArguments="x:String" DisplayName="For each key in the defaultActionArguments, search provided Arguments" sap2010:WorkflowViewState.IdRef="ForEach`1_1" Values="[defaultActionArguments.Keys]">
+              <ui:ForEach.Body>
+                <ActivityAction x:TypeArguments="x:String">
+                  <ActivityAction.Argument>
+                    <DelegateInArgument x:TypeArguments="x:String" Name="key" />
+                  </ActivityAction.Argument>
+                  <Sequence DisplayName="Search key and add default value if it is not found" sap2010:WorkflowViewState.IdRef="Sequence_12">
+                    <If Condition="[not(actionArguments.ContainsKey(key))]" DisplayName="If key is not defined, add from default dictionary" sap2010:WorkflowViewState.IdRef="If_13">
+                      <If.Then>
+                        <InvokeMethod DisplayName="Add default to dictionary" sap2010:WorkflowViewState.IdRef="InvokeMethod_2" MethodName="Add">
+                          <InvokeMethod.TargetObject>
+                            <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</InArgument>
+                          </InvokeMethod.TargetObject>
+                          <InArgument x:TypeArguments="x:String">[key]</InArgument>
+                          <InArgument x:TypeArguments="x:Object">[defaultActionArguments.Item(key)]</InArgument>
+                        </InvokeMethod>
+                      </If.Then>
+                    </If>
+                  </Sequence>
+                </ActivityAction>
+              </ui:ForEach.Body>
+            </ui:ForEach>
+          </Sequence>
+          <Assign DisplayName="Get Selector" sap2010:WorkflowViewState.IdRef="Assign_6">
+            <Assign.To>
+              <OutArgument x:TypeArguments="x:String">[selector]</OutArgument>
+            </Assign.To>
+            <Assign.Value>
+              <InArgument x:TypeArguments="x:String">[in_States.Item(indexOfStates).Key]</InArgument>
+            </Assign.Value>
+          </Assign>
+          <Assign DisplayName="Get Action" sap2010:WorkflowViewState.IdRef="Assign_7">
+            <Assign.To>
+              <OutArgument x:TypeArguments="x:String">[action]</OutArgument>
+            </Assign.To>
+            <Assign.Value>
+              <InArgument x:TypeArguments="x:String">[in_States.Item(indexOfStates).Value.Key]</InArgument>
+            </Assign.Value>
+          </Assign>
+          <Assign sap2010:Annotation.AnnotationText="normal Timeout or scanMode timeout. Use this timeout on the wait for element to appear" DisplayName="normal Timeout or scanMode timeout" sap2010:WorkflowViewState.IdRef="Assign_12">
+            <Assign.To>
+              <OutArgument x:TypeArguments="x:Int32">[TimeoutMS]</OutArgument>
+            </Assign.To>
+            <Assign.Value>
+              <InArgument x:TypeArguments="x:Int32">[if(scanMode, convert.ToInt32(actionArguments.Item("ScanTimeoutMS")), convert.ToInt32(actionArguments.Item("TimeoutMS")))]</InArgument>
+            </Assign.Value>
+          </Assign>
+          <ui:WaitUiElementAppear ContinueOnError="[convert.ToBoolean(actionArguments.Item(&quot;ContinueOnError&quot;))]" DisplayName="Find Element from selector" FoundElement="[element]" sap2010:WorkflowViewState.IdRef="WaitUiElementAppear_1" WaitActive="False" WaitVisible="False">
+            <ui:WaitUiElementAppear.Target>
+              <ui:Target ClippingRegion="{x:Null}" Element="{x:Null}" Selector="[selector]" TimeoutMS="[TimeoutMS]" WaitForReady="INTERACTIVE" />
+            </ui:WaitUiElementAppear.Target>
+          </ui:WaitUiElementAppear>
+        </Sequence>
         <If sap2010:Annotation.AnnotationText="If the element was found, execute the actions you are instructed. If it is not found look for the next one." Condition="[element IsNot Nothing]" DisplayName="If state found, execute action" sap2010:WorkflowViewState.IdRef="If_1">
           <If.Then>
             <Sequence sap2010:Annotation.AnnotationText="If the element was found, Gather the action and it's arguments and execute it. Note that the action is a string." DisplayName="Element is found, execute actions " sap2010:WorkflowViewState.IdRef="Sequence_3">
+              <Assign DisplayName="If element found exist scanMode" sap2010:WorkflowViewState.IdRef="Assign_11">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Boolean">[scanMode]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Boolean">False</InArgument>
+                </Assign.Value>
+              </Assign>
               <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_7">
                 <If.Then>
-                  <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_1" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;in_States.Item(indexOfStates).Key+Environment.NewLine+&#xA;&quot;has been found, action is &quot;+in_States.Item(indexOfStates).Value.Key]" />
+                  <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_1" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;selector+Environment.NewLine+&#xA;&quot;has been found, action is &quot;+action]" />
                 </If.Then>
               </If>
-              <Switch x:TypeArguments="x:String" DisplayName="Switch action" Expression="[in_States.Item(indexOfStates).Value.Key.Trim.ToLower]" sap2010:WorkflowViewState.IdRef="Switch`1_2">
+              <Switch x:TypeArguments="x:String" DisplayName="Switch action" Expression="[action.Trim.ToLower]" sap2010:WorkflowViewState.IdRef="Switch`1_2">
                 <Sequence x:Key="click" DisplayName="Execute" sap2010:WorkflowViewState.IdRef="Sequence_6">
                   <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_8">
                     <If.Then>
                       <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_6" Text="Executing click" />
                     </If.Then>
                   </If>
-                  <ui:Click DelayBefore="{x:Null}" DelayMS="{x:Null}" ClickType="CLICK_SINGLE" ContinueOnError="[in_ContinueOnError]" sap2010:WorkflowViewState.IdRef="Click_2" KeyModifiers="None" MouseButton="BTN_LEFT" SendWindowMessages="False" SimulateClick="False">
-                    <ui:Click.CursorPosition>
-                      <ui:CursorPosition Position="Center">
-                        <ui:CursorPosition.OffsetX>
-                          <InArgument x:TypeArguments="x:Int32" />
-                        </ui:CursorPosition.OffsetX>
-                        <ui:CursorPosition.OffsetY>
-                          <InArgument x:TypeArguments="x:Int32" />
-                        </ui:CursorPosition.OffsetY>
-                      </ui:CursorPosition>
-                    </ui:Click.CursorPosition>
-                    <ui:Click.Target>
-                      <ui:Target ClippingRegion="{x:Null}" Selector="{x:Null}" Element="[element]" TimeoutMS="[in_TimeoutMS]" WaitForReady="INTERACTIVE" />
-                    </ui:Click.Target>
-                  </ui:Click>
+                  <Sequence DisplayName="Implementations" sap2010:WorkflowViewState.IdRef="Sequence_10">
+                    <ui:Click DelayBefore="{x:Null}" DelayMS="{x:Null}" ClickType="CLICK_SINGLE" ContinueOnError="[convert.ToBoolean(actionArguments.Item(&quot;ContinueOnError&quot;))]" sap2010:WorkflowViewState.IdRef="Click_2" KeyModifiers="None" MouseButton="BTN_LEFT" SendWindowMessages="False" SimulateClick="False">
+                      <ui:Click.CursorPosition>
+                        <ui:CursorPosition Position="Center">
+                          <ui:CursorPosition.OffsetX>
+                            <InArgument x:TypeArguments="x:Int32" />
+                          </ui:CursorPosition.OffsetX>
+                          <ui:CursorPosition.OffsetY>
+                            <InArgument x:TypeArguments="x:Int32" />
+                          </ui:CursorPosition.OffsetY>
+                        </ui:CursorPosition>
+                      </ui:Click.CursorPosition>
+                      <ui:Click.Target>
+                        <ui:Target ClippingRegion="{x:Null}" Selector="{x:Null}" Element="[element]" TimeoutMS="[convert.ToInt32(actionArguments.Item(&quot;TimeoutMS&quot;))]" WaitForReady="INTERACTIVE" />
+                      </ui:Click.Target>
+                    </ui:Click>
+                  </Sequence>
                 </Sequence>
                 <Sequence x:Key="type" DisplayName="Execute" sap2010:WorkflowViewState.IdRef="Sequence_9">
                   <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_11">
@@ -121,20 +209,30 @@
                       <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_8" Text="Executing type" />
                     </If.Then>
                   </If>
-                  <ui:TypeInto DelayBefore="{x:Null}" DelayBetweenKeys="{x:Null}" DelayMS="{x:Null}" Activate="True" ClickBeforeTyping="True" ContinueOnError="[in_ContinueOnError]" DisplayName="Type into" EmptyField="True" sap2010:WorkflowViewState.IdRef="TypeInto_3" SendWindowMessages="False" SimulateType="False" Text="[in_States.Item(indexOfStates).Value.Value(0)]">
-                    <ui:TypeInto.Target>
-                      <ui:Target ClippingRegion="{x:Null}" Selector="{x:Null}" Element="[element]" TimeoutMS="[in_TimeoutMS]" WaitForReady="INTERACTIVE" />
-                    </ui:TypeInto.Target>
-                  </ui:TypeInto>
+                  <Sequence DisplayName="Implementations" sap2010:WorkflowViewState.IdRef="Sequence_14">
+                    <ui:TypeInto DelayBefore="{x:Null}" DelayBetweenKeys="{x:Null}" DelayMS="{x:Null}" Activate="True" ClickBeforeTyping="True" ContinueOnError="[convert.ToBoolean(actionArguments.Item(&quot;ContinueOnError&quot;))]" DisplayName="Type into" EmptyField="True" sap2010:WorkflowViewState.IdRef="TypeInto_3" SendWindowMessages="False" SimulateType="False" Text="[actionArguments.Item(&quot;Text&quot;).ToString]">
+                      <ui:TypeInto.Target>
+                        <ui:Target ClippingRegion="{x:Null}" Selector="{x:Null}" Element="[element]" TimeoutMS="[convert.ToInt32(actionArguments.Item(&quot;TimeoutMS&quot;))]" WaitForReady="INTERACTIVE" />
+                      </ui:TypeInto.Target>
+                    </ui:TypeInto>
+                  </Sequence>
                 </Sequence>
               </Switch>
             </Sequence>
           </If.Then>
           <If.Else>
             <Sequence DisplayName="Element not found" sap2010:WorkflowViewState.IdRef="Sequence_8">
+              <Assign DisplayName="If element not found enter scanMode" sap2010:WorkflowViewState.IdRef="Assign_9">
+                <Assign.To>
+                  <OutArgument x:TypeArguments="x:Boolean">[scanMode]</OutArgument>
+                </Assign.To>
+                <Assign.Value>
+                  <InArgument x:TypeArguments="x:Boolean">True</InArgument>
+                </Assign.Value>
+              </Assign>
               <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_10">
                 <If.Then>
-                  <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_2" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;in_States.Item(indexOfStates).Key+Environment.NewLine+&#xA;&quot;not found&quot;]" />
+                  <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_2" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;selector+Environment.NewLine+&#xA;&quot;not found&quot;]" />
                 </If.Then>
               </If>
             </Sequence>
@@ -144,49 +242,91 @@
           <If.Then>
             <If Condition="[element isNot Nothing]" DisplayName="If last element exists status is successfull" sap2010:WorkflowViewState.IdRef="If_5">
               <If.Then>
-                <Assign DisplayName="Completed successfully" sap2010:WorkflowViewState.IdRef="Assign_2">
-                  <Assign.To>
-                    <OutArgument x:TypeArguments="x:Boolean">[out_CompletedSuccessfully]</OutArgument>
-                  </Assign.To>
-                  <Assign.Value>
-                    <InArgument x:TypeArguments="x:Boolean">True</InArgument>
-                  </Assign.Value>
-                </Assign>
+                <Sequence DisplayName="Successful" sap2010:WorkflowViewState.IdRef="Sequence_17">
+                  <Assign DisplayName="Completed successfully" sap2010:WorkflowViewState.IdRef="Assign_2">
+                    <Assign.To>
+                      <OutArgument x:TypeArguments="x:Boolean">[out_CompletedSuccessfully]</OutArgument>
+                    </Assign.To>
+                    <Assign.Value>
+                      <InArgument x:TypeArguments="x:Boolean">True</InArgument>
+                    </Assign.Value>
+                  </Assign>
+                  <Assign DisplayName="Inc Index" sap2010:WorkflowViewState.IdRef="Assign_14">
+                    <Assign.To>
+                      <OutArgument x:TypeArguments="x:Int32">[indexOfStates]</OutArgument>
+                    </Assign.To>
+                    <Assign.Value>
+                      <InArgument x:TypeArguments="x:Int32">[indexOfStates+1]</InArgument>
+                    </Assign.Value>
+                  </Assign>
+                </Sequence>
               </If.Then>
               <If.Else>
-                <Assign DisplayName="Completed, but failed" sap2010:WorkflowViewState.IdRef="Assign_3">
-                  <Assign.To>
-                    <OutArgument x:TypeArguments="x:Boolean">[out_CompletedSuccessfully]</OutArgument>
-                  </Assign.To>
-                  <Assign.Value>
-                    <InArgument x:TypeArguments="x:Boolean">False</InArgument>
-                  </Assign.Value>
-                </Assign>
+                <Sequence DisplayName="If Failed, Determine if retry is enabled" sap2010:WorkflowViewState.IdRef="Sequence_16">
+                  <Assign DisplayName="Completed, but failed" sap2010:WorkflowViewState.IdRef="Assign_3">
+                    <Assign.To>
+                      <OutArgument x:TypeArguments="x:Boolean">[out_CompletedSuccessfully]</OutArgument>
+                    </Assign.To>
+                    <Assign.Value>
+                      <InArgument x:TypeArguments="x:Boolean">False</InArgument>
+                    </Assign.Value>
+                  </Assign>
+                  <If sap2010:Annotation.AnnotationText="If Failed and retry is enabled and available, do it" Condition="[RetryNumber &lt; in_MaxRetryNumber]" DisplayName="Retry" sap2010:WorkflowViewState.IdRef="If_14">
+                    <If.Then>
+                      <Sequence DisplayName="Go to first state and inc RetryNumber" sap2010:WorkflowViewState.IdRef="Sequence_18">
+                        <Assign DisplayName="Reset Index" sap2010:WorkflowViewState.IdRef="Assign_16">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Int32">[indexOfStates]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Int32">0</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                        <Assign DisplayName="Inc Retry Number" sap2010:WorkflowViewState.IdRef="Assign_17">
+                          <Assign.To>
+                            <OutArgument x:TypeArguments="x:Int32">[RetryNumber]</OutArgument>
+                          </Assign.To>
+                          <Assign.Value>
+                            <InArgument x:TypeArguments="x:Int32">[RetryNumber+1]</InArgument>
+                          </Assign.Value>
+                        </Assign>
+                      </Sequence>
+                    </If.Then>
+                    <If.Else>
+                      <Assign DisplayName="Inc Index" sap2010:WorkflowViewState.IdRef="Assign_15">
+                        <Assign.To>
+                          <OutArgument x:TypeArguments="x:Int32">[indexOfStates]</OutArgument>
+                        </Assign.To>
+                        <Assign.Value>
+                          <InArgument x:TypeArguments="x:Int32">[indexOfStates+1]</InArgument>
+                        </Assign.Value>
+                      </Assign>
+                    </If.Else>
+                  </If>
+                </Sequence>
               </If.Else>
             </If>
           </If.Then>
+          <If.Else>
+            <Assign DisplayName="Inc Index" sap2010:WorkflowViewState.IdRef="Assign_13">
+              <Assign.To>
+                <OutArgument x:TypeArguments="x:Int32">[indexOfStates]</OutArgument>
+              </Assign.To>
+              <Assign.Value>
+                <InArgument x:TypeArguments="x:Int32">[indexOfStates+1]</InArgument>
+              </Assign.Value>
+            </Assign>
+          </If.Else>
         </If>
-        <Assign DisplayName="Inc Index" sap2010:WorkflowViewState.IdRef="Assign_1">
-          <Assign.To>
-            <OutArgument x:TypeArguments="x:Int32">[indexOfStates]</OutArgument>
-          </Assign.To>
-          <Assign.Value>
-            <InArgument x:TypeArguments="x:Int32">[indexOfStates+1]</InArgument>
-          </Assign.Value>
-        </Assign>
       </Sequence>
     </While>
-    <sads:DebugSymbol.Symbol>d3pDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcQ29tcG9uZW50c1xTdGF0ZWxlc3MueGFtbDwBXwFlAQQBqAEBrgEBAwGCAQGHAQECSQO0AQ4CAQFLM0s2AgECTQWyAQ0CAQNOB7EBEgIBB03RAU33AQIBBFA8UEcCAQhSCVYiAgFLVwmOAQ4CARyPAQmoAQ4CAQ6pAQmwARICAQlScFJ7AgFTVE5UcwIBUFR+VI4BAgFOUjFSRwIBTFenAVfAAQIBHVkNgwEYAgEkhgENjAEYAgEejwEXjwE+AgEPkQENpgESAgESrgEzrgFEAgEMqwE0qwFDAgEKWg9eFAIBRl8PggEYAgElhwEPiwEUAgEfkQEbkQE0AgETkwERmgEaAgEYnQERpAEaAgEUWh1aMQIBR1wTXLcCAgFJX1lfkQECASZgEXUcAgE5dhGBARwCASmHAR2HATECASCJAROJAf4BAgEimAE9mAFBAgEblQE+lQFZAgEZogE9ogFCAgEXnwE+nwFZAgEVXGpctAICAUphE2UYAgFBZhN0HgIBOncTexgCATR8E4ABIQIBKokBaokB+wECASNhIWE1AgFCYxdjggECAURybnJ+AgE/ZnBmhgECAT1yWHJjAgE7dyF3NQIBNXkXeYEBAgE3fm5+fgIBMnyfAXy1AQIBMHzCAnzyAgIBLX5YfmMCAStjbmN/AgFFeW55fgIBOA==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d35DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcSW5Ib3VzZSBBcHAgQXV0b21hdGlvbnNcRXhjZWxEZW1vXFByb2Nlc3NMb2dpY0NvbXBvbmVudHNcU3RhdGVsZXNzLnhhbWxzAV0BYwEDAYUBAYcBAQJIA8QCDgIBAUozSjYCAQRLNUs8AgEDTDNMNgIBAk4FwgINAgEFTwfBAhICAQlO0QFO9wECAQZRPFFHAgELU1JT0gICAQpYCaQBFAIBbKUBCfABDgIBOfEBCcACDgIBDFkLhgEWAwGFAYcBC44BFAIBf48BC5YBFAIBeZcBC54BFAIBdZ8BC6MBJAIBbaUBpwGlAcABAgE6pwEN3QEYAgFF4AEN7gEYAgE78QEX8QE+AgEN8wENtAISAgEVtwINvgIWAgEQWg1vEgMBlgFwDYUBGgMBhgGMATaMAVkDAYIBiQE3iQFBAwGAAZQBNpQBXwIBfJEBN5EBPwIBepwBNZwBrwECAXiZATaZAUECAXafAbIBnwG9AQIBc6EBUKEBXAIBcaEBZ6EBdAIBb58BM58BewIBbqgBD68BGAIBaLABD7QBFAIBY7UBD9wBGAIBRuEBD+gBGAIBQekBD+0BFAIBPPMBG/MBNAIBFvUBEYYCHAIBL4kCEbICHAIBF7wCN7wCSAIBE7kCOLkCRwIBEVobWlYDAZcBXBFjGgMBngFmEW0aAwGaAXC9AXDcAQMBlAF2E4IBHgMBhwGtATutAUACAWuqATyqAUYCAWmwAR2wATECAWSyAROyAf0BAgFmtQFZtQFwAgFHtgERzQEcAgFXzgER2wEcAgFJ5gE75gE/AgFE4wE84wFGAgFC6QEd6QExAgE96wET6wHlAQIBP/YBE/0BHAIBNf4BE4UCHAIBMIoCE5ECHAIBK5ICE7ECGAIBGGFWYYEBAwGhAV5XXmgDAZ8Ba1ZreQMBnQFoV2hoAwGbAXcVgQEaAwGIAbIBarIB+gECAWe3ARO7ARgCAV68ARPMAR4CAVjPARPTARgCAVLUARPaAR4CAUrrAWrrAeIBAgFA+wE/+wFDAgE4+AFA+AFbAgE2gwI9gwJOAgEzgAI+gAJNAgExjwI/jwJEAgEujAJAjAJbAgEskgJ5kgKfAQIBGZQCF6UCIgIBIagCF68CIAIBHHcjd0wDAYkBeRl/KAMBjAG3ASG3ATUCAV+5ARe5AYIBAgFhvQEVywEgAgFZzwEhzwE1AgFT0QEX0QGBAQIBVdUBFdkBIwIBS5UCGZwCIgIBJ50CGaQCIgIBIq0CQa0CUgIBH6oCQqoCUQIBHX5CfmQDAZEBfUJ9RwMBjwF7XntvAwGNAbkBbrkBfwIBYskBcMkBsAECAV29AXK9AboBAgFcyQFayQFlAgFa0QFu0QF+AgFW1wFw1wGwAQIBUdUBoQHVAekBAgFQ1QH2AtUBqQMCAU7XAVrXAWUCAUyaAkOaAkQCASqXAkSXAlMCASiiAkOiAlICASWfAkSfAlECASM=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="WaitUiElementAppear_1" sap:VirtualizedContainerService.HintSize="1009,68" />
-      <sap2010:ViewStateData Id="WriteLine_1" sap:VirtualizedContainerService.HintSize="210,64" />
-      <sap2010:ViewStateData Id="If_7" sap:VirtualizedContainerService.HintSize="476,212" />
-      <sap2010:ViewStateData Id="WriteLine_6" sap:VirtualizedContainerService.HintSize="210,61" />
-      <sap2010:ViewStateData Id="If_8" sap:VirtualizedContainerService.HintSize="464,209" />
-      <sap2010:ViewStateData Id="Click_2" sap:VirtualizedContainerService.HintSize="464,68" />
-      <sap2010:ViewStateData Id="Sequence_6" sap:VirtualizedContainerService.HintSize="200,51">
+      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_18" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_15" sap:VirtualizedContainerService.HintSize="200,51">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -194,10 +334,16 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="WriteLine_8" sap:VirtualizedContainerService.HintSize="210,61" />
-      <sap2010:ViewStateData Id="If_11" sap:VirtualizedContainerService.HintSize="464,209" />
-      <sap2010:ViewStateData Id="TypeInto_3" sap:VirtualizedContainerService.HintSize="464,96" />
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="200,51">
+      <sap2010:ViewStateData Id="InvokeMethod_2" sap:VirtualizedContainerService.HintSize="218,132" />
+      <sap2010:ViewStateData Id="If_13" sap:VirtualizedContainerService.HintSize="464,280" />
+      <sap2010:ViewStateData Id="Sequence_12" sap:VirtualizedContainerService.HintSize="486,404">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="ForEach`1_1" sap:VirtualizedContainerService.HintSize="200,51">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -205,8 +351,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Switch`1_2" sap:VirtualizedContainerService.HintSize="476,266" />
-      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="498,684">
+      <sap2010:ViewStateData Id="Sequence_11" sap:VirtualizedContainerService.HintSize="314,353">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -215,28 +360,164 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="WriteLine_2" sap:VirtualizedContainerService.HintSize="210,64" />
-      <sap2010:ViewStateData Id="If_10" sap:VirtualizedContainerService.HintSize="464,212" />
-      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="486,336">
+      <sap2010:ViewStateData Id="Assign_6" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="Assign_7" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="Assign_12" sap:VirtualizedContainerService.HintSize="314,117">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="WaitUiElementAppear_1" sap:VirtualizedContainerService.HintSize="314,68" />
+      <sap2010:ViewStateData Id="Sequence_15" sap:VirtualizedContainerService.HintSize="336,942">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_11" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="WriteLine_1" sap:VirtualizedContainerService.HintSize="210,64" />
+      <sap2010:ViewStateData Id="If_7" sap:VirtualizedContainerService.HintSize="242,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="WriteLine_6" sap:VirtualizedContainerService.HintSize="210,61" />
+      <sap2010:ViewStateData Id="If_8" sap:VirtualizedContainerService.HintSize="464,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Click_2" sap:VirtualizedContainerService.HintSize="314,68" />
+      <sap2010:ViewStateData Id="Sequence_10" sap:VirtualizedContainerService.HintSize="464,192">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="1009,859">
+      <sap2010:ViewStateData Id="Sequence_6" sap:VirtualizedContainerService.HintSize="486,407">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="WriteLine_8" sap:VirtualizedContainerService.HintSize="210,61" />
+      <sap2010:ViewStateData Id="If_11" sap:VirtualizedContainerService.HintSize="464,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TypeInto_3" sap:VirtualizedContainerService.HintSize="314,96" />
+      <sap2010:ViewStateData Id="Sequence_14" sap:VirtualizedContainerService.HintSize="464,220">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="486,435">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Switch`1_2" sap:VirtualizedContainerService.HintSize="242,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="264,423">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_9" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="WriteLine_2" sap:VirtualizedContainerService.HintSize="210,64" />
+      <sap2010:ViewStateData Id="If_10" sap:VirtualizedContainerService.HintSize="242,51">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="264,275">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="336,123">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="If_5" sap:VirtualizedContainerService.HintSize="509,208" />
-      <sap2010:ViewStateData Id="If_6" sap:VirtualizedContainerService.HintSize="1009,51">
+      <sap2010:ViewStateData Id="Assign_14" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_17" sap:VirtualizedContainerService.HintSize="264,284">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="531,60" />
+      <sap2010:ViewStateData Id="Assign_16" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_17" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_18" sap:VirtualizedContainerService.HintSize="264,284">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_15" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_14" sap:VirtualizedContainerService.HintSize="531,459">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_16" sap:VirtualizedContainerService.HintSize="553,683">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_5" sap:VirtualizedContainerService.HintSize="842,831" />
+      <sap2010:ViewStateData Id="Assign_13" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_6" sap:VirtualizedContainerService.HintSize="336,51">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">False</x:Boolean>
@@ -244,8 +525,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="1009,60" />
-      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="1031,1309">
+      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="358,1347">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -254,14 +534,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="While_1" sap:VirtualizedContainerService.HintSize="1057,1494">
+      <sap2010:ViewStateData Id="While_1" sap:VirtualizedContainerService.HintSize="464,1532">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="1079,1660">
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="486,1878">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -269,7 +549,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Statelss_1" sap:VirtualizedContainerService.HintSize="1119,1740" />
+      <sap2010:ViewStateData Id="Statelss_1" sap:VirtualizedContainerService.HintSize="526,1958" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
