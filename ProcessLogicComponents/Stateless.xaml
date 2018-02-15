@@ -27,7 +27,6 @@
     <x:Property Name="out_Successful" Type="OutArgument(x:Boolean)" />
     <x:Property Name="io_FailedStateIndex" Type="InOutArgument(x:Int32)" />
     <x:Property Name="io_FailedState" Type="InOutArgument(scg:KeyValuePair(x:String, scg:KeyValuePair(x:String, scg:Dictionary(x:String, x:Object))))" />
-    <x:Property Name="firstCrucialStateIndex" Type="InArgument(x:Int32)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -87,52 +86,28 @@
       <Variable x:TypeArguments="x:Int32" Default="0" Name="indexOfStates" />
       <Variable x:TypeArguments="x:Boolean" Default="False" Name="scanMode" />
       <Variable x:TypeArguments="x:Int32" Default="0" Name="RetryNumber" />
+      <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New dictionary(Of String, Object) From {&#xA;{&quot;TimeoutMS&quot;, 5000},&#xA;{&quot;ContinueOnError&quot;, True},&#xA;{&quot;ActionMethod&quot;, &quot;Hardware&quot;},&#xA;{&quot;ScanTimeoutMS&quot;, 1000},&#xA;{&quot;DelayMS&quot;, 0},&#xA;{&quot;MarkStateAsCrucial&quot;, False},&#xA;{&quot;Text&quot;, &quot;&quot;}&#xA;}]" Name="defaultActionArguments" />
+      <Variable x:TypeArguments="x:Int32" Default="-1" Name="firstCrucialStateIndex" />
     </Sequence.Variables>
-    <While sap2010:Annotation.AnnotationText="Cycle through all the states to execute" DisplayName="For each pair of states, find state and execute action" sap2010:WorkflowViewState.IdRef="While_1" Condition="[indexOfStates &lt; in_States.Count AND RetryNumber &lt; in_MaxRetryNumber]">
-      <Sequence sap2010:Annotation.AnnotationText="Find the element corresponding to the selector" DisplayName="Find State" sap2010:WorkflowViewState.IdRef="Sequence_2">
-        <Sequence.Variables>
-          <Variable x:TypeArguments="ui:UiElement" Default="[Nothing]" Name="element" />
-          <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Name="actionArguments" />
-          <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New dictionary(Of String, Object) From {&#xA;{&quot;TimeoutMS&quot;, 5000},&#xA;{&quot;ContinueOnError&quot;, True},&#xA;{&quot;ActionMethod&quot;, &quot;Hardware&quot;},&#xA;{&quot;ScanTimeoutMS&quot;, 1000},&#xA;{&quot;DelayMS&quot;, 0},&#xA;{&quot;Text&quot;, &quot;&quot;}&#xA;}]" Name="defaultActionArguments" />
-          <Variable x:TypeArguments="x:String" Name="selector" />
-          <Variable x:TypeArguments="x:String" Name="action" />
-        </Sequence.Variables>
-        <Sequence DisplayName="Decode Input Data" sap2010:WorkflowViewState.IdRef="Sequence_15">
-          <Sequence sap2010:Annotation.AnnotationText="determine arguments provided for the action to be executed and add defaults if those are not provided, like Timeout or Continue on Error options" DisplayName="Determine Action Arguments" sap2010:WorkflowViewState.IdRef="Sequence_11">
-            <If Condition="[in_States.Item(indexOfStates).Value.Value isNot Nothing]" DisplayName="If dictionary exists in input" sap2010:WorkflowViewState.IdRef="If_15">
-              <If.Then>
-                <Assign DisplayName="Read Action arguments" sap2010:WorkflowViewState.IdRef="Assign_4">
-                  <Assign.To>
-                    <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</OutArgument>
-                  </Assign.To>
-                  <Assign.Value>
-                    <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[in_States.Item(indexOfStates).Value.Value]</InArgument>
-                  </Assign.Value>
-                </Assign>
-              </If.Then>
-              <If.Else>
-                <Assign DisplayName="Init empty dictionary" sap2010:WorkflowViewState.IdRef="Assign_18">
-                  <Assign.To>
-                    <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</OutArgument>
-                  </Assign.To>
-                  <Assign.Value>
-                    <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[new Dictionary(of string, object)]</InArgument>
-                  </Assign.Value>
-                </Assign>
-              </If.Else>
-            </If>
-            <ui:ForEach x:TypeArguments="x:String" DisplayName="For each key in the defaultActionArguments, search provided Arguments" sap2010:WorkflowViewState.IdRef="ForEach`1_1" Values="[defaultActionArguments.Keys]">
+    <Sequence sap2010:Annotation.AnnotationText="determine arguments provided for the action to be executed and add defaults if those are not provided, like Timeout or Continue on Error options" DisplayName="Determine Action Arguments" sap2010:WorkflowViewState.IdRef="Sequence_47">
+      <ui:ForEach x:TypeArguments="scg:KeyValuePair(x:String, scg:KeyValuePair(x:String, scg:Dictionary(x:String, x:Object)))" sap2010:Annotation.AnnotationText="For each state, add the default options to the action arguments." DisplayName="For each state" sap2010:WorkflowViewState.IdRef="ForEach`1_4" Values="[in_States]">
+        <ui:ForEach.Body>
+          <ActivityAction x:TypeArguments="scg:KeyValuePair(x:String, scg:KeyValuePair(x:String, scg:Dictionary(x:String, x:Object)))">
+            <ActivityAction.Argument>
+              <DelegateInArgument x:TypeArguments="scg:KeyValuePair(x:String, scg:KeyValuePair(x:String, scg:Dictionary(x:String, x:Object)))" Name="currentState" />
+            </ActivityAction.Argument>
+            <ui:ForEach x:TypeArguments="x:String" DisplayName="For each key in the defaultActionArguments, search provided Arguments" sap2010:WorkflowViewState.IdRef="ForEach`1_6" Values="[defaultActionArguments.Keys]">
               <ui:ForEach.Body>
                 <ActivityAction x:TypeArguments="x:String">
                   <ActivityAction.Argument>
                     <DelegateInArgument x:TypeArguments="x:String" Name="key" />
                   </ActivityAction.Argument>
-                  <Sequence DisplayName="Search key and add default value if it is not found" sap2010:WorkflowViewState.IdRef="Sequence_12">
-                    <If Condition="[not(actionArguments.ContainsKey(key))]" DisplayName="If key is not defined, add from default dictionary" sap2010:WorkflowViewState.IdRef="If_13">
+                  <Sequence DisplayName="Search key and add default value if it is not found" sap2010:WorkflowViewState.IdRef="Sequence_51">
+                    <If Condition="[not(currentState.Value.Value.ContainsKey(key))]" DisplayName="If key is not defined, add from default dictionary" sap2010:WorkflowViewState.IdRef="If_41">
                       <If.Then>
-                        <InvokeMethod DisplayName="Add default to dictionary" sap2010:WorkflowViewState.IdRef="InvokeMethod_2" MethodName="Add">
+                        <InvokeMethod DisplayName="Add default to dictionary" sap2010:WorkflowViewState.IdRef="InvokeMethod_5" MethodName="Add">
                           <InvokeMethod.TargetObject>
-                            <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</InArgument>
+                            <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[currentState.Value.Value]</InArgument>
                           </InvokeMethod.TargetObject>
                           <InArgument x:TypeArguments="x:String">[key]</InArgument>
                           <InArgument x:TypeArguments="x:Object">[defaultActionArguments.Item(key)]</InArgument>
@@ -143,10 +118,31 @@
                 </ActivityAction>
               </ui:ForEach.Body>
             </ui:ForEach>
-          </Sequence>
+          </ActivityAction>
+        </ui:ForEach.Body>
+      </ui:ForEach>
+      <Assign sap2010:Annotation.AnnotationText="Assign the index for the first Crucial state" DisplayName="Assign CrucialState Index" sap2010:WorkflowViewState.IdRef="Assign_53">
+        <Assign.To>
+          <OutArgument x:TypeArguments="x:Int32">[firstCrucialStateIndex]</OutArgument>
+        </Assign.To>
+        <Assign.Value>
+          <InArgument x:TypeArguments="x:Int32">[in_States.FindIndex(Function(match) convert.ToBoolean(match.Value.Value.Item("MarkStateAsCrucial")))]</InArgument>
+        </Assign.Value>
+      </Assign>
+    </Sequence>
+    <While sap2010:Annotation.AnnotationText="Cycle through all the states to execute" DisplayName="For each pair of states, find state and execute action" sap2010:WorkflowViewState.IdRef="While_1" Condition="[indexOfStates &lt; in_States.Count AND RetryNumber &lt; in_MaxRetryNumber]">
+      <Sequence sap2010:Annotation.AnnotationText="Find the element corresponding to the selector" DisplayName="Find State" sap2010:WorkflowViewState.IdRef="Sequence_2">
+        <Sequence.Variables>
+          <Variable x:TypeArguments="ui:UiElement" Default="[Nothing]" Name="element" />
+          <Variable x:TypeArguments="x:String" Name="actionSelector" />
+          <Variable x:TypeArguments="x:String" Name="action" />
+          <Variable x:TypeArguments="x:String" Name="stateSelector" />
+          <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Name="actionArguments" />
+        </Sequence.Variables>
+        <Sequence DisplayName="Decode Input Data" sap2010:WorkflowViewState.IdRef="Sequence_15">
           <Assign DisplayName="Get Selector" sap2010:WorkflowViewState.IdRef="Assign_6">
             <Assign.To>
-              <OutArgument x:TypeArguments="x:String">[selector]</OutArgument>
+              <OutArgument x:TypeArguments="x:String">[actionSelector]</OutArgument>
             </Assign.To>
             <Assign.Value>
               <InArgument x:TypeArguments="x:String">[in_States.Item(indexOfStates).Key]</InArgument>
@@ -160,9 +156,17 @@
               <InArgument x:TypeArguments="x:String">[in_States.Item(indexOfStates).Value.Key]</InArgument>
             </Assign.Value>
           </Assign>
+          <Assign DisplayName="Get current action arguments" sap2010:WorkflowViewState.IdRef="Assign_52">
+            <Assign.To>
+              <OutArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[actionArguments]</OutArgument>
+            </Assign.To>
+            <Assign.Value>
+              <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[in_States.Item(indexOfStates).Value.Value]</InArgument>
+            </Assign.Value>
+          </Assign>
           <ui:WaitUiElementAppear sap2010:Annotation.AnnotationText="normal Timeout or scanMode timeout. Use this timeout on the wait for element to appear" ContinueOnError="[convert.ToBoolean(actionArguments.Item(&quot;ContinueOnError&quot;))]" DisplayName="Find Element from selector" FoundElement="[element]" sap2010:WorkflowViewState.IdRef="WaitUiElementAppear_1" WaitActive="False" WaitVisible="False">
             <ui:WaitUiElementAppear.Target>
-              <ui:Target ClippingRegion="{x:Null}" Element="{x:Null}" Selector="[selector]" TimeoutMS="[if(scanMode, convert.ToInt32(actionArguments.Item(&quot;ScanTimeoutMS&quot;)), convert.ToInt32(actionArguments.Item(&quot;TimeoutMS&quot;)))]" WaitForReady="INTERACTIVE" />
+              <ui:Target ClippingRegion="{x:Null}" Element="{x:Null}" Selector="[actionSelector]" TimeoutMS="[if(scanMode, convert.ToInt32(actionArguments.Item(&quot;ScanTimeoutMS&quot;)), convert.ToInt32(actionArguments.Item(&quot;TimeoutMS&quot;)))]" WaitForReady="INTERACTIVE" />
             </ui:WaitUiElementAppear.Target>
           </ui:WaitUiElementAppear>
         </Sequence>
@@ -173,7 +177,7 @@
                 <Sequence sap2010:Annotation.AnnotationText="If the element was found, Gather the action and it's arguments and execute it. Note that the action is a string." DisplayName="Element is found, execute actions and delay " sap2010:WorkflowViewState.IdRef="Sequence_36">
                   <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_26">
                     <If.Then>
-                      <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_14" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;selector+Environment.NewLine+&#xA;&quot;found. Executing action &quot; + action]" />
+                      <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_14" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;actionSelector+Environment.NewLine+&#xA;&quot;found. Executing action &quot; + action]" />
                     </If.Then>
                   </If>
                   <Switch x:TypeArguments="x:String" DisplayName="Switch action" Expression="[action.Trim.ToLower]" sap2010:WorkflowViewState.IdRef="Switch`1_4">
@@ -243,7 +247,7 @@
                 <Sequence sap2010:Annotation.AnnotationText="Element not found, enter scanMode" DisplayName="Element not found" sap2010:WorkflowViewState.IdRef="Sequence_39">
                   <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_30">
                     <If.Then>
-                      <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_17" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;selector+Environment.NewLine+&#xA;&quot;not found&quot;]" />
+                      <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_17" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;actionSelector+Environment.NewLine+&#xA;&quot;not found&quot;]" />
                     </If.Then>
                   </If>
                   <Sequence DisplayName="Store Failed and enter scanMode" sap2010:WorkflowViewState.IdRef="Sequence_37">
@@ -303,7 +307,7 @@
                       <Sequence DisplayName="We have recovered" sap2010:WorkflowViewState.IdRef="Sequence_40">
                         <If Condition="[in_DebugMessages]" DisplayName="If debug" sap2010:WorkflowViewState.IdRef="If_32">
                           <If.Then>
-                            <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_18" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;selector+Environment.NewLine+&#xA;&quot;has been found, action is &quot;+action]" />
+                            <WriteLine DisplayName="Write line" sap2010:WorkflowViewState.IdRef="WriteLine_18" Text="[&quot;Element with selector:&quot;+ Environment.NewLine+&#xA;actionSelector+Environment.NewLine+&#xA;&quot;has been found, action is &quot;+action]" />
                           </If.Then>
                         </If>
                         <Assign DisplayName="If element found exit scanMode" sap2010:WorkflowViewState.IdRef="Assign_40">
@@ -380,13 +384,20 @@
         </If>
       </Sequence>
     </While>
-    <sads:DebugSymbol.Symbol>d35DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcSW5Ib3VzZSBBcHAgQXV0b21hdGlvbnNcRXhjZWxEZW1vXFByb2Nlc3NMb2dpY0NvbXBvbmVudHNcU3RhdGVsZXNzLnhhbWyKAQFdAWMBAwGFAQGHAQECVQOAAw4CAQFXM1c2AgEEWDVYPAIBA1kzWTYCAQJbBf4CDQIBBVwH/QISAgELW9EBW54CAgEGXjxeRwIBDWBSYPACAgEMZAmoARQDAZQBqQEJ/AIOAgEOZQuSARYDAagBkwELmgEUAwGiAZsBC6IBFAMBnAGjAQunASQDAZUBqQEXqQEoAgEPqwENpwISAgFAqgIN+gIYAgERZg17EgMBuQF8DZEBGgMBqQGYATaYAVkDAaUBlQE3lQFBAwGjAaABNqABXwMBnwGdATedAT8DAZ0BowGtAqMBuAIDAZoBpQFQpQFcAwGYAaUBZ6UB9wEDAZcBowGuAaMB9gEDAZYBqwGrAasBxAECAUGtARHwARwCAWLzARGlAhwCAUKrAg/5AhQCARJmG2ZWAwG6AWgRbxoDAcEBchF5GgMBvQF8vQF83AEDAbcBggETjgEeAwGqAa4BE7IBGAMBjwGzARPaARwCAXLbARPmARgCAWrnARPnAaoCAgFo6AET7wEcAgFj9AET+AEYAgFd+QETkgIeAgFNkwITpAIeAgFDqwIdqwI2AgETrQIT0wIYAgEo1gIT9wIeAgEUbVZtgQEDAcQBaldqaAMBwgF3Vnd5AwHAAXRXdGgDAb4BgwEVjQEaAwGrAa4BIa4BNQMBkAGwARewAYICAwGSAbMBXbMBdAIBc7QBFcsBIAMBgwHMARXZASACAXXbASHbAUgCAWvdARfkASACAW7nAT7nAZkBAgFp7QE97QFOAgFm6gE+6gFNAgFk9AEh9AE1AgFe9gEX9gHqAQIBYPoBFYECHgIBWIICFYkCHgIBUooCFZECHgIBTpQCFZsCHgIBSZwCFaMCHgIBRK0Cea0CpwECASmvAhe9AiICATbAAhfRAiICASzXAhX2AhoCARWDASODAUwDAawBhQEZiwEoAwGvAbABb7AB/wEDAZMBtQEXuQEcAwGKAboBF8oBIgMBhAHNARfRARwCAX7SARfYASICAXbiAUPiAUcCAXHfAUTfAVQCAW/2AW/2AecBAgFh/wE//wFOAgFb/AFA/AFVAgFZhwKSAYcCsQECAVWEApMBhAKjAQIBU48CQY8CRQIBUYwCQowCTAIBT5kCP5kCQAIBTJYCQJYCTwIBSqECP6ECTgIBR54CQJ4CTQIBRbACGbQCHgIBO7UCGbwCIgIBN8ECGcgCIgIBMskCGdACIgIBLdcCI9cCSAIBFtkCGeoCJAIBHu0CGfQCIgIBGYoBQooBZAMBtAGJAUKJAUcDAbIBhwFehwFvAwGwAbUBJbUBOQMBiwG3ARu3AYcBAwGNAbsBGckBJAMBhQHNASXNATkCAX/PARvPAYYBAwGBAdMBGdcBJwIBd7ACJ7ACOwIBPLICHbICiAICAT66AkW6AkoCATq3Aka3AlACATjGAkPGAkQCATXDAkTDAlMCATPOAkPOAlICATDLAkTLAlECAS7aAhvhAiQCASTiAhvpAiQCAR/yAkPyAlQCARzvAkTvAlMCARq3AXO3AYQBAwGOAccBdMcBtAEDAYkBuwF2uwG+AQMBiAHHAV7HAWkDAYYBzwFzzwGDAQMBggHVAXTVAbQBAgF90wGlAdMB7QECAXzTAfoC0wGtAwIBetUBXtUBaQIBeLICdbIChQICAT/fAkXfAkYCASfcAkbcAlUCASXnAkXnAlQCASLkAkbkAlMCASA=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d35DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcSW5Ib3VzZSBBcHAgQXV0b21hdGlvbnNcRXhjZWxEZW1vXFByb2Nlc3NMb2dpY0NvbXBvbmVudHNcU3RhdGVsZXNzLnhhbWyLAQFdAWMBAwGFAQGHAQECVAOEAw4CAQFWM1Y2AgEGVzVXPAIBBVgzWDYCAQRZTlmZAwIBA1ozWjcCAQJcBYQBEAMBrwGFAQWCAw0CAQddB3sUAwG0AXwHgwEQAwGwAYYBB4EDEgIBDYUB0QGFAZ4CAgEIXbcCXcQCAwHFAWMNeBoDAbUBgQExgQGXAQMBswF+Mn5KAwGxAYgBPIgBRwIBDo4BCawBFAMBlQGtAQmAAw4CAQ9jvQFj3AEDAcMBaRN1HgMBtgGPAQuWARQDAakBlwELngEUAwGjAZ8BC6YBFAMBnQGnAQurASQDAZYBrQEXrQEoAgEQrwENqwISAgFBrgIN/gIYAgESahV0GgMBtwGUATaUAVkDAawBkQE3kQFHAwGqAZwBNpwBXwMBpgGZATeZAT8DAaQBpAFQpAF7AwGgAaEBUaEBYgMBngGnAa0CpwG4AgMBmwGpAVCpAWIDAZkBqQFtqQH9AQMBmAGnAa4BpwH2AQMBlwGvAasBrwHEAQIBQrEBEfQBHAIBY/cBEakCHAIBQ68CD/0CFAIBE2ojalUDAbgBbBlyKAMBuwGyARO2ARgDAZABtwET3gEcAgFz3wET6gEYAgFr6wET6wGqAgIBaewBE/MBHAIBZPgBE/wBGAIBXv0BE5YCHgIBTpcCE6gCHgIBRK8CHa8CNgIBFLECE9cCGAIBKdoCE/sCHgIBFXFCcWQDAcABcEJwRwMBvgFuXm54AwG8AbIBIbIBNQMBkQG0ARe0AYgCAwGTAbcBXbcBdAIBdLgBFc8BIAMBhAHQARXdASACAXbfASHfAUgCAWzhARfoASACAW/rAT7rAZkBAgFq8QE98QFOAgFn7gE+7gFNAgFl+AEh+AE1AgFf+gEX+gHwAQIBYf4BFYUCHgIBWYYCFY0CHgIBU44CFZUCHgIBT5gCFZ8CHgIBSqACFacCHgIBRbECebECpwECASqzAhfBAiICATfEAhfVAiICAS3bAhX6AhoCARa0AW+0AYUCAwGUAbkBF70BHAMBiwG+ARfOASIDAYUB0QEX1QEcAgF/1gEX3AEiAgF35gFD5gFHAgFy4wFE4wFUAgFw+gFv+gHtAQIBYoMCP4MCTgIBXIACQIACVQIBWosCkgGLArEBAgFWiAKTAYgCowECAVSTAkGTAkUCAVKQAkKQAkwCAVCdAj+dAkACAU2aAkCaAk8CAUulAj+lAk4CAUiiAkCiAk0CAUa0Ahm4Ah4CATy5AhnAAiICATjFAhnMAiICATPNAhnUAiICAS7bAiPbAkgCARfdAhnuAiQCAR/xAhn4AiICARq5ASW5ATkDAYwBuwEbuwGHAQMBjgG/ARnNASQDAYYB0QEl0QE5AwGAAdMBG9MBhgEDAYIB1wEZ2wEnAgF4tAIntAI7AgE9tgIdtgKOAgIBP74CRb4CSgIBO7sCRrsCUAIBOcoCQ8oCRAIBNscCRMcCUwIBNNICQ9ICUgIBMc8CRM8CUQIBL94CG+UCJAIBJeYCG+0CJAIBIPYCQ/YCVAIBHfMCRPMCUwIBG7sBc7sBhAEDAY8BywF0ywG0AQMBigG/AXa/Ab4BAwGJAcsBXssBaQMBhwHTAXPTAYMBAwGDAdkBdNkBtAECAX7XAaUB1wHtAQIBfdcB+gLXAa0DAgF72QFe2QFpAgF5tgJ1tgKLAgIBQOMCReMCRgIBKOACRuACVQIBJusCResCVAIBI+gCRugCUwIBIQ==</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_18" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="If_15" sap:VirtualizedContainerService.HintSize="509,208">
+      <sap2010:ViewStateData Id="InvokeMethod_5" sap:VirtualizedContainerService.HintSize="218,132" />
+      <sap2010:ViewStateData Id="If_41" sap:VirtualizedContainerService.HintSize="464,280" />
+      <sap2010:ViewStateData Id="Sequence_51" sap:VirtualizedContainerService.HintSize="486,404">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="ForEach`1_6" sap:VirtualizedContainerService.HintSize="502,538">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -394,24 +405,23 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_2" sap:VirtualizedContainerService.HintSize="218,132" />
-      <sap2010:ViewStateData Id="If_13" sap:VirtualizedContainerService.HintSize="464,280" />
-      <sap2010:ViewStateData Id="Sequence_12" sap:VirtualizedContainerService.HintSize="486,404">
+      <sap2010:ViewStateData Id="ForEach`1_4" sap:VirtualizedContainerService.HintSize="518,699">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ForEach`1_1" sap:VirtualizedContainerService.HintSize="509,538">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_11" sap:VirtualizedContainerService.HintSize="531,952">
+      <sap2010:ViewStateData Id="Assign_53" sap:VirtualizedContainerService.HintSize="242,102">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_47" sap:VirtualizedContainerService.HintSize="2235,446">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -420,16 +430,17 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_6" sap:VirtualizedContainerService.HintSize="531,60" />
-      <sap2010:ViewStateData Id="Assign_7" sap:VirtualizedContainerService.HintSize="531,60" />
-      <sap2010:ViewStateData Id="WaitUiElementAppear_1" sap:VirtualizedContainerService.HintSize="531,110">
+      <sap2010:ViewStateData Id="Assign_6" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="Assign_7" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="Assign_52" sap:VirtualizedContainerService.HintSize="314,60" />
+      <sap2010:ViewStateData Id="WaitUiElementAppear_1" sap:VirtualizedContainerService.HintSize="314,110">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_15" sap:VirtualizedContainerService.HintSize="2187,1426">
+      <sap2010:ViewStateData Id="Sequence_15" sap:VirtualizedContainerService.HintSize="2187,534">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -463,7 +474,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_33" sap:VirtualizedContainerService.HintSize="486,407">
+      <sap2010:ViewStateData Id="Sequence_33" sap:VirtualizedContainerService.HintSize="486,561">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -488,7 +499,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_35" sap:VirtualizedContainerService.HintSize="486,435">
+      <sap2010:ViewStateData Id="Sequence_35" sap:VirtualizedContainerService.HintSize="486,589">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -668,7 +679,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="2209,2818">
+      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="2209,1926">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -677,14 +688,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="While_1" sap:VirtualizedContainerService.HintSize="2235,3003">
+      <sap2010:ViewStateData Id="While_1" sap:VirtualizedContainerService.HintSize="2235,2111">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="2257,3319">
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="2257,2913">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -692,7 +703,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Statelss_1" sap:VirtualizedContainerService.HintSize="2297,3399" />
+      <sap2010:ViewStateData Id="Statelss_1" sap:VirtualizedContainerService.HintSize="2297,2993" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
