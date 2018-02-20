@@ -23,6 +23,7 @@
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
     <x:Property Name="io_TransactionItem" Type="InOutArgument(ui:QueueItem)" />
+    <x:Property Name="in_wbPath" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -87,6 +88,8 @@
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbProcess_Parent" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbProcess_Level" />
       <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbProcess_FinalExec" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbPath+&quot;|&quot;+wbProcess_Type]" Name="wbProcess_Path" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbHandleError]" Name="wbProcess_HandleError" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence DisplayName="Try processing wbProcess" sap2010:WorkflowViewState.IdRef="Sequence_47">
@@ -135,7 +138,8 @@
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbProcess_HandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
           <ui:RemoveLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Remove fields" sap2010:WorkflowViewState.IdRef="RemoveLogFields_1">
@@ -187,7 +191,8 @@
                     <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbProcess_FinalExec AND in_wbFinalExec]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbProcess_HandleError]</InArgument>
+                    <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
                   </ui:InvokeWorkflowFile.Arguments>
                 </ui:InvokeWorkflowFile>
                 <ui:RemoveLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Remove fields" sap2010:WorkflowViewState.IdRef="RemoveLogFields_2">
@@ -201,7 +206,7 @@
                 </ui:RemoveLogFields>
               </Sequence>
             </Sequence>
-            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) or not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_5">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) And not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_5">
               <If.Then>
                 <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_12" />
               </If.Then>
@@ -244,7 +249,8 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">BRE</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbProcess_HandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
               <ui:RemoveLogFields sap2010:Annotation.AnnotationText="Audit Log Fields&#xA;wbTransactionID&#xA;wbTransactionField1&#xA;wbTransactionField2" DisplayName="wb Audit Remove fields" sap2010:WorkflowViewState.IdRef="RemoveLogFields_3">
@@ -257,7 +263,7 @@
                 </ui:RemoveLogFields.Fields>
               </ui:RemoveLogFields>
             </Sequence>
-            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) or not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_6">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) And not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_6">
               <If.Then>
                 <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_13" />
               </If.Then>
@@ -266,7 +272,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d21DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcUHJvY2Vzcy54YW1scAFvAXQBAlIDjgIOAgEBVDZURgIBbVVYVaEBAgFsVjRWQQIBalc0V0MCAWhYM1hBAgFmWTVZOwIBZVwHlwESAgFunwEL0QEWAgEu2QELiQIWAgECXQltFAMBlgFuCZYBFAIBb6ABDaABvwECAWShAQ3LARgCATTMAQ3QARICAS/aAQ3aAb8BAgEt2wENgwIYAgEIhAINiAISAgEDXzpfTwMBlwFhC2wQAwGYAW8LcyUDAZMBdAt6HQMBjwF7C4wBIwIBdI0BC5UBIAIBcKIBD8oBGgIBNcwB5AHMAdgCAgEwzgERzgFJAgEz3AEP4AEpAgEp4QEP5wEhAgEl6AEP+QEnAgEN+gEPggIkAgEJhALkAYQC2AICAQSGAhGGAkkCAQdhGWGxAQMBmQFjD2O8AQMBoAFmD2oUAwGaAW+yAm/IAgMBlAF4UnhgAwGSAXdSd2ADAZEBdk52ZQMBkAF/Sn9cAwGNAX1IfVgDAYsBhgFVhgFZAwGKAYMBcIMBgQEDAYgBhQFShQGzAQMBhgGCAUuCAWADAYQBiQFRiQFjAwGCAYEBTIEB4gECAX6AAUqAAU4CAX2HAU6HAVICAXx7vAF71gECAXt+SH5ZAgF5hAF0hAF+AgF3igFPigFhAgF1kAE4kAFHAgFzkQE4kQFLAgFykgE4kgFLAgFxowERpwErAgFfqAERrgEjAgFbrwERwAEpAgE6wQERyQEmAgE23AGNAtwBogICASzcAcMC3AHZAgIBKuUBVuUBZAIBKOQBVuQBZAIBJ+MBUuMBaQIBJuwBTuwBYAIBI+oBTOoBXAIBIfMBWfMBXgIBIPABdPABhQECAR7yAVbyAVsCAR3vAU/vAWQCARv2AVX2AWcCARnuAVDuAaQCAgEY7QFO7QFTAgEX9AFS9AFWAgEW9QFV9QFYAgEV6AHAAegB2gECARTrAUzrAV0CARLxAXjxAYIBAgEQ9wFT9wFlAgEO/QE8/QFLAgEM/gE8/gFPAgEL/wE8/wFPAgEKYzhjjwEDAaEBZh1mVAMBmwFoE2inAQMBngGjAZACowGlAgIBYqMBxgKjAdwCAgFgrAFYrAFmAgFeqwFYqwFmAgFdqgFUqgFrAgFcswFQswFiAgFZsQFOsQFeAgFXugFbugFgAgFWtwF2twGHAQIBVLkBWLkBXQIBU7YBUbYBZgIBUb0BV70BaQIBT7UBUrUBpAICAUm0AVC0AY0BAgFGuwFUuwF8AgFDvAFXvAFcAgFCrwHCAa8B3AECAUGyAU6yAV8CAT+4AXq4AYQBAgE9vgFVvgFnAgE7xAE+xAFNAgE5xQE+xQFRAgE4xgE+xgFRAgE3aD5oegMBnwE=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3hDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWx1AW8BdAECUwOUAg4CAQFVNlVGAgF2VlhWoQECAXVXNFdBAgFzWDRYQwIBcVkzWUECAW9aNVo7AgFuWzRbXgIBa1w0XEgCAWlfB5sBEgIBd6MBC9YBFgIBMN4BC48CFgIBAmAJcBQDAaEBcQmaARQCAXikAQ2kAb8BAgFopQEN0AEYAgE20QEN1QESAgEx3wEN3wG/AQIBL+ABDYkCGAIBCIoCDY4CEgIBA2I6Yk8DAaIBZAtvEAMBowFyC3YlAwGeAXcLfR0DAZoBfguQASMCAX2RAQuZASACAXmmAQ/PARoCATfRAeQB0QHZAgIBMtMBEdMBSQIBNeEBD+UBKQIBK+YBD+wBIQIBJ+0BD/8BJwIBDYACD4gCJAIBCYoC5AGKAtkCAgEEjAIRjAJJAgEHZBlksQEDAaQBZg9mvAEDAasBaQ9tFAMBpQFysgJyyAIDAZ8Be1J7YAMBnQF6UnpgAwGcAXlOeWUDAZsBggFKggFcAwGYAYABSIABWAMBlgGOAUiOAVgDAZQBiQFViQFZAwGTAYYBcIYBgQEDAZEBiAFSiAGzAQMBjwGFAUuFAWADAY0BjAFRjAFjAwGLAYQBTIQB4gEDAYcBgwFKgwFOAwGGAYoBTooBUgMBhQF+vAF+1gEDAYQBgQFIgQFZAwGCAYcBdIcBfgMBgAGNAU+NAWYCAX6UATiUAUcCAXyVATiVAUsCAXuWATiWAUsCAXqnARGrASsCAWOsARGyASMCAV+zARHFASkCATzGARHOASYCATjhAY0C4QGiAgIBLuEBwwLhAdkCAgEs6gFW6gFkAgEq6QFW6QFkAgEp6AFS6AFpAgEo8QFO8QFgAgEl7wFM7wFcAgEj/QFM/QFcAgEh+AFZ+AFeAgEg9QF09QGFAQIBHvcBVvcBWwIBHfQBT/QBZAIBG/sBVfsBZwIBGfMBUPMBpAICARjyAU7yAVMCARf5AVL5AVYCARb6AVX6AVgCARXtAcAB7QHaAQIBFPABTPABXQIBEvYBePYBggECARD8AVP8AWoCAQ6DAjyDAksCAQyEAjyEAk8CAQuFAjyFAk8CAQpmOGaPAQMBrAFpHWlUAwGmAWsTa6cBAwGpAacBkAKnAaUCAgFmpwHGAqcB3AICAWSwAViwAWYCAWKvAVivAWYCAWGuAVSuAWsCAWC3AVC3AWICAV21AU61AV4CAVvDAU7DAV4CAVm+AVu+AWACAVi7AXa7AYcBAgFWvQFYvQFdAgFVugFRugFmAgFTwQFXwQFpAgFRuQFSuQGkAgIBS7gBULgBjQECAUi/AVS/AXwCAUXAAVfAAVwCAUSzAcIBswHcAQIBQ7YBTrYBXwIBQbwBerwBhAECAT/CAVXCAWwCAT3JAT7JAU0CATvKAT7KAVECATrLAT7LAVECATlrPmt6AwGqAQ==</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -471,7 +477,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="546,1655" />
+      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="546,1695" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

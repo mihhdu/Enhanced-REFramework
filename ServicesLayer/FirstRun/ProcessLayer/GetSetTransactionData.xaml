@@ -23,6 +23,7 @@
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
     <x:Property Name="io_TransactionItem" Type="InOutArgument(s:Tuple(x:String, x:Object))" />
     <x:Property Name="in_RetryNumber" Type="InArgument(x:Int32)" />
+    <x:Property Name="in_wbPath" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -52,6 +53,7 @@
       <x:String>UiPath.Core.Activities</x:String>
       <x:String>System.Windows.Markup</x:String>
       <x:String>Microsoft.Activities</x:String>
+      <x:String>System.Xml.Serialization</x:String>
     </sco:Collection>
   </TextExpression.NamespacesForImplementation>
   <TextExpression.ReferencesForImplementation>
@@ -84,8 +86,8 @@
       <Variable x:TypeArguments="x:Boolean" Name="flagFirstApplicationRun" />
       <Variable x:TypeArguments="x:Boolean" Name="flagFirstLocalTransactionRun" />
     </Sequence.Variables>
-    <Sequence sap2010:Annotation.AnnotationText="Set Helper Flags and invoke GetData Service based on Config setting" DisplayName="Set Helper Flags" sap2010:WorkflowViewState.IdRef="Sequence_10">
-      <Assign DisplayName="Set First Application Run flag" sap2010:WorkflowViewState.IdRef="Assign_3">
+    <Sequence sap2010:Annotation.AnnotationText="Set Helper Flags and invoke GetData Service based on Config setting" DisplayName="Set Helper Flags" sap2010:WorkflowViewState.IdRef="Sequence_9">
+      <Assign DisplayName="Set First Application Run flag" sap2010:WorkflowViewState.IdRef="Assign_1">
         <Assign.To>
           <OutArgument x:TypeArguments="x:Boolean">[flagFirstApplicationRun]</OutArgument>
         </Assign.To>
@@ -93,7 +95,7 @@
           <InArgument x:TypeArguments="x:Boolean">[in_TransactionNumber = 1 and in_RetryNumber = 0]</InArgument>
         </Assign.Value>
       </Assign>
-      <Assign DisplayName="Set First Local Transaction Run flag" sap2010:WorkflowViewState.IdRef="Assign_4">
+      <Assign DisplayName="Set First Local Transaction Run flag" sap2010:WorkflowViewState.IdRef="Assign_2">
         <Assign.To>
           <OutArgument x:TypeArguments="x:Boolean">[flagFirstLocalTransactionRun]</OutArgument>
         </Assign.To>
@@ -102,10 +104,10 @@
         </Assign.Value>
       </Assign>
     </Sequence>
-    <Sequence DisplayName="Processing" sap2010:WorkflowViewState.IdRef="Sequence_7">
-      <If Condition="[flagFirstApplicationRun]" DisplayName="Get TransactionData on the first run and output it" sap2010:WorkflowViewState.IdRef="If_1">
+    <Sequence DisplayName="Processing" sap2010:WorkflowViewState.IdRef="Sequence_11">
+      <If Condition="[flagFirstApplicationRun]" DisplayName="Get TransactionData on the first run and output it" sap2010:WorkflowViewState.IdRef="If_3">
         <If.Then>
-          <Sequence DisplayName="Fetch Data and write it to global objects" sap2010:WorkflowViewState.IdRef="Sequence_9">
+          <Sequence DisplayName="Fetch Data and write it to global objects" sap2010:WorkflowViewState.IdRef="Sequence_10">
             <ui:InvokeCode ContinueOnError="{x:Null}" Code="Dim loopIndex As Int32 = 0&#xA;If (io_TransactionData Is Nothing) &#xA;  io_TransactionData = New System.Collections.Generic.List(Of system.Tuple(Of String,Object))()&#xA;End If&#xA;While loopIndex &lt; in_FillNumber &#xA; Dim rng As System.Random = New system.Random(CInt(Date.Now.AddTicks(loopIndex).Ticks And &amp;h0000FFFF))&#xA; io_TransactionData.Add(new system.Tuple(Of String, object)(loopIndex.ToString,rng.NextDouble))&#xA; loopIndex = loopIndex + 1&#xA;End While" DisplayName="Generate a Sorted List of &lt;index, random number&gt;" sap2010:WorkflowViewState.IdRef="InvokeCode_1">
               <ui:InvokeCode.Arguments>
                 <InArgument x:TypeArguments="x:Int32" x:Key="in_FillNumber">[cint(in_Config.Item("FillNumber"))]</InArgument>
@@ -115,9 +117,9 @@
           </Sequence>
         </If.Then>
       </If>
-      <If Condition="[in_TransactionNumber &lt;= io_TransactionData.Count]" DisplayName="Get TransactionItem based on TransactionNumber" sap2010:WorkflowViewState.IdRef="If_2">
+      <If Condition="[in_TransactionNumber &lt;= io_TransactionData.Count]" DisplayName="Get TransactionItem based on TransactionNumber" sap2010:WorkflowViewState.IdRef="If_4">
         <If.Then>
-          <Assign DisplayName="Assign new item" sap2010:WorkflowViewState.IdRef="Assign_1">
+          <Assign DisplayName="Assign new item" sap2010:WorkflowViewState.IdRef="Assign_9">
             <Assign.To>
               <OutArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[io_TransactionItem]</OutArgument>
             </Assign.To>
@@ -127,7 +129,7 @@
           </Assign>
         </If.Then>
         <If.Else>
-          <Assign DisplayName="End Process, no more data" sap2010:WorkflowViewState.IdRef="Assign_2">
+          <Assign DisplayName="End Process, no more data" sap2010:WorkflowViewState.IdRef="Assign_10">
             <Assign.To>
               <OutArgument x:TypeArguments="s:Tuple(x:String, x:Object)">[io_TransactionItem]</OutArgument>
             </Assign.To>
@@ -138,13 +140,13 @@
         </If.Else>
       </If>
     </Sequence>
-    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcR2V0U2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwXUgOOAQ4CAQFXBWgQAgEaaQWMARACAQJYB18QAgEgYAdnEAIBG2oHdQwCARF2B4sBDAIBA10zXWQCASNaNFpNAgEhZTNlRwIBHmI0YlICARxqFWowAgESbAtzFgIBFHYVdkwCAQR4C38UAgELggELiQEUAgEHbQ1yHQIBFX1JfXoCAQ56SnpeAgEMhwFJhwFSAgEKhAFKhAFeAgEIb01vcQIBGHBzcIcBAgEW</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcR2V0U2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwXVAOQAQ4CAQFZBWoQAgEaawWOARACAQJaB2EQAgEgYgdpEAIBG2wHdwwCARF4B40BDAIBA18zX2QCASNcNFxNAgEhZzNnRwIBHmQ0ZFICARxsFWwwAgESbgt1FgIBFHgVeEwCAQR6C4EBFAIBC4QBC4sBFAIBB28NdB0CARV/SX96AgEOfEp8XgIBDIkBSYkBUgIBCoYBSoYBXgIBCHFNcXECARhyc3KHAQIBFg==</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Sequence_10" sap:VirtualizedContainerService.HintSize="531,326">
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="264,328">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -153,14 +155,32 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="InvokeCode_1" sap:VirtualizedContainerService.HintSize="314,164" />
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="336,288">
+      <sap2010:ViewStateData Id="Sequence_10" sap:VirtualizedContainerService.HintSize="336,288">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="509,436">
+      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="200,52">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Assign_9" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_10" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="If_4" sap:VirtualizedContainerService.HintSize="200,52">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_11" sap:VirtualizedContainerService.HintSize="264,268">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -168,25 +188,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="509,208">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="531,808">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="553,1475">
+      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="286,1091">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -195,7 +197,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="593,1555" />
+      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="326,1171" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

@@ -23,6 +23,7 @@
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbPath" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -85,6 +86,8 @@
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbNextTransaction_Parent" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbNextTransaction_Level" />
       <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbNextTransaction_FinalExec" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbPath+&quot;|&quot;+wbNextTransaction_Type]" Name="wbNextTransaction_Path" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbHandleError]" Name="wbNextTransaction_HandleError" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence DisplayName="Try processing wbNextTransaction" sap2010:WorkflowViewState.IdRef="Sequence_47">
@@ -176,7 +179,8 @@
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbNextTransaction_HandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbNextTransaction_Path]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -206,10 +210,11 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbNextTransaction_FinalExec AND in_wbFinalExec]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbNextTransaction_HandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbNextTransaction_Path]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
-              <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) or not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_10">
+              <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) AND not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_10">
                 <If.Then>
                   <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_5" />
                 </If.Then>
@@ -219,7 +224,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d3JDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcTmV4dFRyYW5zYWN0aW9uLnhhbWxJAXMBeAECUAPfAQ4CAQFSNlJGAgExU1hToQECATBUNFRBAgEuVTRVQwIBLFYzVkECASpXNVc7AgEpWge3ARICATK/AQvaARYCAQJbCaIBFAIBTaMBCbYBFAIBM8ABDcABvwECASjBAQ3ZARgCAQNcC3MQAgFmdAuhARACAU6kAQu1ASMCATTCAQ/TAScCAQnUAQ/YARQCAQRcGVw5AgFnXg9xGgIBaXSTAXSVAwIBT3YPhwEaAgFcigEPnwEUAgFQqAFKqAFkAgFLpgFIpgFgAgFJrwFVrwFZAgFIrAFwrAGJAQIBRq4BUq4BugECAUSrAUurAWgCAUKyAVGyAWMCAUCqAUyqAYwBAgE+qQFKqQFOAgE9sAFOsAFSAgE8pAG9AaQB1wECATunAUinAWECATmtAXStAX4CATezAU+zAWECATXGAU7GAWgCASbEAUzEAWQCASTNAVnNAV4CASPKAXTKAY0BAgEhzAFWzAFbAgEgyQFPyQFsAgEe0AFV0AFnAgEcyAFQyAHNAQIBGMcBTscBkwECARXOAVLOAYIBAgESzwFVzwFaAgERwgHBAcIB2wECARDFAUzFAWUCAQ7LAXjLAYIBAgEM0QFT0QFlAgEK1AHmAdQB2gICAQXWARPWAUoCAQhgE2UrAgFubRdt9gECAWp3EX4aAgFhfxGGARoCAV2KAR2KAWMCAVGMAROTARwCAVeWAROdARwCAVJiUGJ/AgFwYMoBYOkBAgFvbYQBbfMBAgFrfDt8cAIBZHk9eWoCAWKEATyEAT8CAWCBAT2BAWQCAV6RAT2RAXICAVqOAT+OAWwCAVibAT2bAWwCAVWYAT+YAWYCAVM=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3JDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcTmV4dFRyYW5zYWN0aW9uLnhhbWxNAXMBeAECUQPkAQ4CAQFTNlNGAgE4VFhUoQECATdVNFVBAgE1VjRWQwIBM1czV0ECATFYNVg7AgEwWTRZZgIBLVo0WkgCAStdB7sBEgIBOcMBC98BFgIBAl4JpQEUAgFWpgEJugEUAgE6xAENxAG/AQIBKsUBDd4BGAIBA18LdhACAW93C6QBEAIBV6cBC7kBIwIBO8YBD9gBJwIBCdkBD90BFAIBBF8ZXzkCAXBhD3QaAgFyd5MBd5UDAgFYeQ+KARoCAWWNAQ+iARQCAVmrAUqrAWQCAVSpAUipAWACAVK3AUi3AWACAVCyAVWyAVkCAU+vAXCvAYkBAgFNsQFSsQG6AQIBS64BS64BaAIBSbUBUbUBYwIBR60BTK0BjAECAUWsAUqsAU4CAUSzAU6zAVICAUOnAb0BpwHXAQIBQqoBSKoBYQIBQLABdLABfgIBPrYBT7YBbgIBPMoBTsoBaAIBKMgBTMgBZAIBJtYBTNYBZAIBJNEBWdEBXgIBI84BdM4BjQECASHQAVbQAVsCASDNAU/NAWwCAR7UAVXUAWcCARzMAVDMAc0BAgEYywFOywGTAQIBFdIBUtIBggECARLTAVXTAVoCARHGAcEBxgHbAQIBEMkBTMkBZQIBDs8BeM8BggECAQzVAVPVAXICAQrZAeYB2QHbAgIBBdsBE9sBSgIBCGMTaCsCAXdwF3D2AQIBc3oRgQEaAgFqggERiQEaAgFmjQEdjQFjAgFajwETlgEcAgFgmQEToAEcAgFbZVBlfwIBeWPKAWPpAQIBeHCEAXDzAQIBdH87f3ACAW18PXxqAgFrhwE8hwE/AgFphAE9hAFkAgFnlAE9lAFyAgFjkQE/kQFsAgFhngE9ngFsAgFemwE/mwFmAgFc</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -264,7 +269,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_51" sap:VirtualizedContainerService.HintSize="820,1042">
+      <sap2010:ViewStateData Id="Sequence_51" sap:VirtualizedContainerService.HintSize="820,1146">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -341,7 +346,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="SetTransactionStatus_1" sap:VirtualizedContainerService.HintSize="568,1561" />
+      <sap2010:ViewStateData Id="SetTransactionStatus_1" sap:VirtualizedContainerService.HintSize="568,1481" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

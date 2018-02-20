@@ -20,6 +20,7 @@
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbPath" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -82,6 +83,7 @@
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbTemplate_Parent" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbTemplate_Level" />
       <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbTemplate_FinalExec" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbPath+&quot;|&quot;+wbTemplate_Type]" Name="wbTemplate_Path" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence DisplayName="Try processing wbTemplate" sap2010:WorkflowViewState.IdRef="Sequence_3">
@@ -103,6 +105,7 @@
               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -132,11 +135,12 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbTemplate_FinalExec AND in_wbFinalExec]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError" />
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
-            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) or not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_1">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) AND not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_1">
               <If.Then>
                 <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_4" />
               </If.Then>
@@ -168,10 +172,11 @@
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">BRE</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
-            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) or not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_4">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) AND not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_4">
               <If.Then>
                 <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_7" />
               </If.Then>
@@ -180,7 +185,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d21DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JUZW1wbGF0ZS54YW1sRQFfAWQBAk0DuAEOAgEBTzZPRgIBT1BYUKEBAgFOUTRRQQIBTFI0UkMCAUpTM1NBAgFIVDVUOwIBR1cHbRICAVB1C5ABFgIBIpgBC7MBFgIBAlgJWIkBAgFqWQlsFAIBUXYNdr8BAgFGdw2KARgCASiLAQ2PARICASOZAQ2ZAb8BAgEhmgENrQEYAgEIrgENsgESAgEDWgtrIwIBUngPiQEnAgEpiwHkAYsB2AICASSNARGNAUgCASebAQ+sAScCAQmuAeQBrgHYAgIBBLABEbABSAIBB15KXl0CAWhcSFxZAgFmZVVlWQIBZWJwYoIBAgFjZFJkVgIBYmFLYWECAWBoUWhjAgFeYExghQECAVxfSl9OAgFbZk5mUgIBWlq8AVrWAQIBWV1IXVoCAVdjdGN+AgFVaU9pYQIBU3xOfGECAUR6THpdAgFCgwFZgwFeAgFBgAF0gAGGAQIBP4IBVoIBWwIBPn9Pf2UCATyGAVWGAWcCATp+UH7FAQIBNn1OfYwBAgEzhAFShAF7AgEwhQFVhQFaAgEveMABeNoBAgEue0x7XgIBLIEBeIEBggECASqfAU6fAWECAR+dAUydAV0CAR2mAVmmAV4CARyjAXSjAYYBAgEapQFWpQFbAgEZogFPogFlAgEXqQFVqQFnAgEVoQFQoQHFAQIBFKABTqABUwIBE6cBUqcBVgIBEqgBVagBWAIBEZsBwAGbAdoBAgEQngFMngFeAgEOpAF4pAGCAQIBDKoBU6oBZQIBCg==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d21DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JUZW1wbGF0ZS54YW1sSgFfAWQBAk4DvQEOAgEBUDZQRgIBWFFYUaEBAgFXUjRSQQIBVVM0U0MCAVNUM1RBAgFRVTVVOwIBUFY0Vl8CAU1ZB3ASAgFZeAuUARYCASScAQu4ARYCAQJaCVqJAQIBdVsJbxQCAVp5DXm/AQIBTHoNjgEYAgEqjwENkwESAgElnQENnQG/AQIBI54BDbIBGAIBCLMBDbcBEgIBA1wLbiMCAVt7D40BJwIBK48B5AGPAdkCAgEmkQERkQFIAgEpnwEPsQEnAgEJswHkAbMB2QICAQS1ARG1AUgCAQdgSmBdAgFzXkheWQIBcWxIbFkCAW9nVWdZAgFuZHBkggECAWxmUmZWAgFrY0tjYQIBaWpRamMCAWdiTGKFAQIBZWFKYU4CAWRoTmhSAgFjXLwBXNYBAgFiX0hfWgIBYGV0ZX4CAV5rT2thAgFcf05/YQIBSn1MfV0CAUiLAUyLAV0CAUaGAVmGAV4CAUWDAXSDAYYBAgFDhQFWhQFbAgFCggFPggFlAgFAiQFViQFnAgE+gQFQgQHFAQIBOoABToABjAECATeHAVKHAXsCATSIAVWIAVoCATN7wAF72gECATJ+TH5eAgEwhAF4hAGCAQIBLooBU4oBZQIBLKMBTqMBYQIBIaEBTKEBXQIBH68BTK8BXQIBHaoBWaoBXgIBHKcBdKcBhgECARqpAVapAVsCARmmAU+mAWUCARetAVWtAWcCARWlAVClAcUBAgEUpAFOpAFTAgETqwFSqwFWAgESrAFVrAFYAgERnwHAAZ8B2gECARCiAUyiAV4CAQ6oAXioAYIBAgEMrgFTrgFlAgEK</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>

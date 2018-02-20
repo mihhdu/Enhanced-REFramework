@@ -20,6 +20,7 @@
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_Config" Type="InArgument(scg:Dictionary(x:String, x:Object))" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbPath" Type="InArgument(x:String)" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -82,6 +83,8 @@
       <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbCloseAllApplications_Parent" />
       <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbCloseAllApplications_Level" />
       <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbCloseAllApplications_FinalExec" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbPath+&quot;|&quot;+wbCloseAllApplications_Type]" Name="wbCloseAllApplications_Path" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbHandleError]" Name="wbCloseAllApplications_HandleError" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence sap2010:Annotation.AnnotationText="Close All Applications work block." DisplayName="Try processing wbCloseAllApplications" sap2010:WorkflowViewState.IdRef="Sequence_27">
@@ -95,7 +98,7 @@
                 <ActivityAction.Argument>
                   <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
                 </ActivityAction.Argument>
-                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke KillAllProcesses workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_8" UnSafe="False" WorkflowFileName="ServicesLayer\FirstRun\ProcessLayer\KillAllProcesses.xaml">
+                <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke KillAllProcesses workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_7" UnSafe="False" WorkflowFileName="ServicesLayer\FirstRun\ProcessLayer\KillAllProcesses.xaml">
                   <ui:InvokeWorkflowFile.Arguments>
                     <scg:Dictionary x:TypeArguments="x:String, Argument" />
                   </ui:InvokeWorkflowFile.Arguments>
@@ -120,7 +123,8 @@
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbCloseAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbCloseAllApplications_HandleError]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbCloseAllApplications_Path]</InArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -150,11 +154,12 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[wbCloseAllApplications_FinalExec AND in_wbFinalExec]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">AppEx</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbCloseAllApplications_HandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbCloseAllApplications_Path]</InArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
-            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) or not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_3">
+            <If sap2010:Annotation.AnnotationText="- If parent workblock does not set in_wbHandleError to &quot;Failed&quot; or &quot;SoftFail&quot;, this means it want it rethrown as it does not intend to handle it" Condition="[not(in_wbHandleError.Trim.ToLower=&quot;failed&quot;) And not(in_wbHandleError.Trim.ToLower=&quot;softfail&quot;)]" DisplayName="If exception not handled, rethrow" sap2010:WorkflowViewState.IdRef="If_3">
               <If.Then>
                 <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_3" />
               </If.Then>
@@ -163,7 +168,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d5EBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcQ2xvc2VBbGxBcHBsaWNhdGlvbnMueGFtbDMBcwF4AQJNA6cBDgIBAU82T0YCATFQWFChAQIBMFE0UUECAS5SNFJDAgEsUzNTQQIBKlQ1VDsCASlXB38SAgEyhwELogEWAgECWAlqFAIBT2sJfhQCATOIAQ2IAb8BAgEoiQENnAEYAgEInQENoQESAgEDWg1akAECAVJiEWYpAgFQbAt9IwIBNIoBD5sBJwIBCZ0B5AGdAdgCAgEEnwERnwFIAgEHYskBYoQCAgFRcEpwaQIBTW5IbmUCAUt3VXdZAgFKdHB0jgECAUh2Una/AQIBRnNLc20CAUR6UXpjAgFCckxykQECAUBxSnFOAgE/eE54gwECATxsvAFs1gECATtvSG9mAgE5dXR1fgIBN3tPe2ECATWOAU6OAW0CASaMAUyMAWkCASSVAVmVAV4CASOSAXSSAZIBAgEhlAFWlAFbAgEgkQFPkQFxAgEemAFVmAFnAgEckAFQkAHRAQIBGI8BTo8BmAECARWWAVKWAYcBAgESlwFVlwFaAgERigHAAYoB2gECARCNAUyNAWoCAQ6TAXiTAYIBAgEMmQFTmQFlAgEK</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d5EBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxGaXJzdFJ1blxQcm9jZXNzTGF5ZXJcQ2xvc2VBbGxBcHBsaWNhdGlvbnMueGFtbDcBcwF4AQJOA6wBDgIBAVA2UEYCAThRWFGhAQIBN1I0UkECATVTNFNDAgEzVDNUQQIBMVU1VTsCATBWNFZrAgEtVzRXSAIBK1oHgwESAgE5iwELpwEWAgECWwltFAIBWG4JggEUAgE6jAENjAG/AQIBKo0BDaEBGAIBCKIBDaYBEgIBA10NXZABAgFbZRFpKQIBWW8LgQEjAgE7jgEPoAEnAgEJogHkAaIB2QICAQSkARGkAUgCAQdlyQFlhAICAVpzSnNpAgFWcUhxZQIBVH9If2UCAVJ6VXpZAgFRd3B3jgECAU95Unm/AQIBTXZLdm0CAUt9UX1jAgFJdUx1kQECAUd0SnROAgFGe057gwECAUNvvAFv1gECAUJySHJmAgFAeHR4fgIBPn5PfnMCATySAU6SAW0CASiQAUyQAWkCASaeAUyeAWkCASSZAVmZAV4CASOWAXSWAZIBAgEhmAFWmAFbAgEglQFPlQFxAgEenAFVnAFnAgEclAFQlAHRAQIBGJMBTpMBmAECARWaAVKaAYcBAgESmwFVmwFaAgERjgHAAY4B2gECARCRAUyRAWoCAQ6XAXiXAYIBAgEMnQFTnQF3AgEK</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -175,7 +180,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_8" sap:VirtualizedContainerService.HintSize="314,87" />
+      <sap2010:ViewStateData Id="InvokeWorkflowFile_7" sap:VirtualizedContainerService.HintSize="314,87" />
       <sap2010:ViewStateData Id="Catch`1_5" sap:VirtualizedContainerService.HintSize="400,156">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
@@ -237,7 +242,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="486,893">
+      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="486,851">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
