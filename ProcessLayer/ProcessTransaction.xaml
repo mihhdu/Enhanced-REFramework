@@ -77,6 +77,7 @@
       <AssemblyReference>Microsoft.VisualStudio.Services.Common</AssemblyReference>
       <AssemblyReference>System.Runtime.WindowsRuntime</AssemblyReference>
       <AssemblyReference>Newtonsoft.Json</AssemblyReference>
+      <AssemblyReference>System.Collections.Immutable</AssemblyReference>
     </sco:Collection>
   </TextExpression.ReferencesForImplementation>
   <TryCatch sap2010:Annotation.AnnotationText="##Business Process Layer##&#xA;Description: In this file all other process specific files will be invoked. If an application exception occurs, the current transaction can be retried. If a BRE is thrown, the transaction will be skipped. Can be a flowchart or sequence. " DisplayName="wbProcess" sap2010:WorkflowViewState.IdRef="TryCatch_4">
@@ -92,23 +93,7 @@
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence DisplayName="Try processing wbProcess" sap2010:WorkflowViewState.IdRef="Sequence_47">
-        <Sequence sap2010:Annotation.AnnotationText="Process layer." DisplayName="Process" sap2010:WorkflowViewState.IdRef="Sequence_45">
-          <Sequence.Variables>
-            <Variable x:TypeArguments="s:Random" Default="[new system.random]" Name="rng" />
-          </Sequence.Variables>
-          <If Condition="[convert.ToDouble(io_TransactionItem.SpecificContent.Values(1)) &lt; 0.05 OR convert.ToDouble(io_TransactionItem.SpecificContent.Values(1)) &gt; 0.95]" DisplayName="Reject the value with BRE " sap2010:WorkflowViewState.IdRef="If_8">
-            <If.Then>
-              <Throw DisplayName="Throw BRE" Exception="[new uipath.Core.BusinessRuleException(&quot;Simulated, BRE, specific message&quot;)]" sap2010:WorkflowViewState.IdRef="Throw_1" />
-            </If.Then>
-            <If.Else>
-              <If Condition="[rng.NextDouble &lt; 0.1 OR rng.NextDouble &gt; 0.90]" DisplayName="Sometimes simulate AppEx" sap2010:WorkflowViewState.IdRef="If_7">
-                <If.Then>
-                  <Throw DisplayName="Throw AppEx" Exception="[new Exception(&quot;Simulated AppEx, some message&quot;)]" sap2010:WorkflowViewState.IdRef="Throw_2" />
-                </If.Then>
-              </If>
-            </If.Else>
-          </If>
-        </Sequence>
+        <Sequence sap2010:Annotation.AnnotationText="Process layer." DisplayName="Process" sap2010:WorkflowViewState.IdRef="Sequence_45" />
         <Sequence sap2010:Annotation.AnnotationText="Logging for work block. The sequence adds logging fields and counts the number of successful and failed child processes by adding wbName_Audit of the child processes to the dictionary named wbName_Audit &lt;string, object&gt; of the parent process" DisplayName="wb Logging Successful" sap2010:WorkflowViewState.IdRef="Sequence_46">
           <ui:SetTransactionStatus Reason="{x:Null}" ServiceBaseAddress="{x:Null}" TimeoutMS="{x:Null}" sap2010:Annotation.AnnotationText="Successful" DisplayName="Set transaction status" ErrorType="Application" sap2010:WorkflowViewState.IdRef="SetTransactionStatus_9" Status="Successful" TransactionItem="[io_TransactionItem]">
             <ui:SetTransactionStatus.Output>
@@ -239,25 +224,14 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d3hDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWxcAW8BdAECUgPzAQ4CAQFUNlRGAgFZVVhVoQECAVhWNFZBAgFXVzRXQwIBVVgzWEECAVNZNVk7AgFSWjRaXgIBT1s0W0gCAU1eB5oBEgIBWqIBC+4BFgIBAl8JbxQDAYMBcAmZARQCAVumAQ2xARgCAUWyAQ3oARgCAQjpAQ3tARICAQNhOmFPAwGEAWMLbhADAYUBcQt1JQMBgAF2C3wdAgF8fQuPASMCAWCQAQuYASACAVynAQ+wARoCAUazAQ/nARoCAQnpAeQB6QHZAgIBBOsBEesBSQIBB2MZY7EBAwGGAWUPZbwBAwGNAWgPbBQDAYcBcbICccgCAwGBAXpSemACAX95UnlgAgF+eE54jwECAX2BAUqBAVwCAXp/SH9YAgF4jQFIjQFYAgF2iAFViAFZAgF1hQFwhQGBAQIBc4cBUocBVwIBcoQBS4QBYAIBcIsBUYsBYwIBboMBTIMB4gECAWqCAUqCAU4CAWmJAU6JAVICAWh9vAF91gECAWeAAUiAAVkCAWWGAXSGAX4CAWOMAU+MAWYCAWGTATiTAUcCAV+UATiUAUsCAV6VATiVAUsCAV2oARGvARoCAUe0ARHDARYCATjEARHKASMCATTLARHdASkCAQ7eARHmASYCAQplOGWPAQMBjgFoHWhUAwGIAWoTaqcBAwGLAa0BPa0BoQECAUqqAT6qAVUCAUi0AR+0ATgCATm2ARW6AS8CAUC9ARXBAS8CATvIAVjIAWYCATfHAVjHAWYCATbGAVTGAZUBAgE1zwFQzwFiAgEyzQFOzQFeAgEw2wFO2wFeAgEu1gFb1gFgAgEt0wF20wGHAQIBK9UBWNUBXQIBKtIBUdIBZgIBKNkBV9kBaQIBJtEBUtEBpAICASDQAVDQAagBAgEc1wFU1wGXAQIBGNgBV9gBbwIBFssBwgHLAdwBAgEVzgFOzgFfAgET1AF61AGEAQIBEdoBVdoBbAIBD+EBPuEBTQIBDeIBPuIBUQIBDOMBPuMBUQIBC2o+anoDAYwBtgGYArYBrQICAUO2Ac4CtgHkAgIBQb0BlAK9AakCAgE+vQHKAr0B4AICATw=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3hDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWxTAW8BdAECUwPkAQ4CAQFVNlVGAgFZVlhWoQECAVhXNFdBAgFXWDRYQwIBVVkzWUECAVNaNVo7AgFSWzRbXgIBT1w0XEgCAU1fB4sBEgIBWpMBC98BFgIBAmAJYIwBAwGDAWEJigEUAgFblwENogEYAgFFowEN2QEYAgEI2gEN3gESAgEDYgtmJQMBgAFnC20dAgF8bguAASMCAWCBAQuJASACAVyYAQ+hARoCAUakAQ/YARoCAQnaAeQB2gHZAgIBBNwBEdwBSQIBB2KyAmLIAgMBgQFrUmtgAgF/alJqYAIBfmlOaY8BAgF9ckpyXAIBenBIcFgCAXh+SH5YAgF2eVV5WQIBdXZwdoEBAgFzeFJ4VwIBcnVLdWACAXB8UXxjAgFudEx04gECAWpzSnNOAgFpek56UgIBaG68AW7WAQIBZ3FIcVkCAWV3dHd+AgFjfU99ZgIBYYQBOIQBRwIBX4UBOIUBSwIBXoYBOIYBSwIBXZkBEaABGgIBR6UBEbQBFgIBOLUBEbsBIwIBNLwBEc4BKQIBDs8BEdcBJgIBCp4BPZ4BoQECAUqbAT6bAVUCAUilAR+lATgCATmnARWrAS8CAUCuARWyAS8CATu5AVi5AWYCATe4AVi4AWYCATa3AVS3AZUBAgE1wAFQwAFiAgEyvgFOvgFeAgEwzAFOzAFeAgEuxwFbxwFgAgEtxAF2xAGHAQIBK8YBWMYBXQIBKsMBUcMBZgIBKMoBV8oBaQIBJsIBUsIBpAICASDBAVDBAagBAgEcyAFUyAGXAQIBGMkBV8kBbwIBFrwBwgG8AdwBAgEVvwFOvwFfAgETxQF6xQGEAQIBEcsBVcsBbAIBD9IBPtIBTQIBDdMBPtMBUQIBDNQBPtQBUQIBC6cBmAKnAa0CAgFDpwHOAqcB5AICAUGuAZQCrgGpAgIBPq4BygKuAeACAgE8</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Throw_1" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="Throw_2" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="If_7" sap:VirtualizedContainerService.HintSize="464,208" />
-      <sap2010:ViewStateData Id="If_8" sap:VirtualizedContainerService.HintSize="689,356">
+      <sap2010:ViewStateData Id="Sequence_45" sap:VirtualizedContainerService.HintSize="336,126">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_45" sap:VirtualizedContainerService.HintSize="336,78">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
@@ -294,7 +268,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_47" sap:VirtualizedContainerService.HintSize="358,897">
+      <sap2010:ViewStateData Id="Sequence_47" sap:VirtualizedContainerService.HintSize="358,945">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -390,14 +364,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="418,1211">
+      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="418,1259">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="458,1291" />
+      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="458,1339" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
