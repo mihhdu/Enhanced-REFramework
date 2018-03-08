@@ -12,13 +12,13 @@
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
-    <x:Property Name="in_wbLevel" Type="InArgument(x:Int32)" />
-    <x:Property Name="in_wbParent" Type="InArgument(x:String)" />
-    <x:Property Name="io_Audit" Type="InOutArgument(scg:List(scg:Dictionary(x:String, x:Object)))" />
-    <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
+    <x:Property Name="in_wbParentType" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbParentLevel" Type="InArgument(x:Int32)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
+    <x:Property Name="in_wbParentPath" Type="InArgument(x:String)" />
+    <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
     <x:Property Name="in_wbHandleError" Type="InArgument(x:String)" />
-    <x:Property Name="in_wbPath" Type="InArgument(x:String)" />
+    <x:Property Name="io_Audit" Type="InOutArgument(scg:List(scg:Dictionary(x:String, x:Object)))" />
   </x:Members>
   <mva:VisualBasic.Settings>
     <x:Null />
@@ -76,13 +76,9 @@
   <TryCatch sap2010:Annotation.AnnotationText="#Process Logic Layer#&#xA;Description: &#xA;&#xA;Pre Condition: &#xA;Post Condtion: " DisplayName="wbTemplate" sap2010:WorkflowViewState.IdRef="TryCatch_1">
     <TryCatch.Variables>
       <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbTemplate_StartTime" />
-      <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[new system.Collections.Generic.List(of Dictionary(of string, object))]" Name="wbTemplate_Audit" />
       <Variable x:TypeArguments="x:String" Default="WorkBlock Template" Name="wbTemplate_Type" />
-      <Variable x:TypeArguments="x:String" Default="[in_wbParent]" Name="wbTemplate_Parent" />
-      <Variable x:TypeArguments="x:Int32" Default="[in_wbLevel]" Name="wbTemplate_Level" />
-      <Variable x:TypeArguments="x:Boolean" Default="True" Name="wbTemplate_FinalExec" />
-      <Variable x:TypeArguments="x:String" Default="[in_wbPath+&quot;|&quot;+wbTemplate_Type]" Name="wbTemplate_Path" />
-      <Variable x:TypeArguments="x:String" Default="[in_wbHandleError]" Name="wbTemplate_HandleError" />
+      <Variable x:TypeArguments="x:Int32" Default="[in_wbParentLevel+1]" Name="wbTemplate_Level" />
+      <Variable x:TypeArguments="x:String" Default="[in_wbParentPath+&quot;|&quot;+wbTemplate_Type]" Name="wbTemplate_Path" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence DisplayName="Try processing wbTemplate" sap2010:WorkflowViewState.IdRef="Sequence_3">
@@ -92,19 +88,18 @@
             <ui:InvokeWorkflowFile.Arguments>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbTemplate_Type]</InArgument>
               <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbTemplate_Level]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbTemplate_Parent]</InArgument>
+              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbTemplate_StartTime]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbParentType">[in_wbParentType]</InArgument>
+              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">Info</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbTemplate_Type.toString + " successful"]</InArgument>
-              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbTemplate_StartTime]</InArgument>
-              <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbTemplate_Audit]</InArgument>
-              <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
-              <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">True</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
-              <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
+              <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">True</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
-              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbTemplate_HandleError]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
+              <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -137,19 +132,18 @@
                 <ui:InvokeWorkflowFile.Arguments>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbTemplate_Type]</InArgument>
                   <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbTemplate_Level]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbParent">[wbTemplate_Parent]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">[if((wbTemplate_FinalExec AND in_wbFinalExec) or businessRuleException, "Error", "Warn")]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbTemplate_Type.toString +" failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbTemplate_StartTime]</InArgument>
-                  <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbTemplate_Audit]</InArgument>
-                  <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
-                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
-                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
-                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[(wbTemplate_FinalExec AND in_wbFinalExec) or businessRuleException]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">[exception.GetType.Name]</InArgument>
-                  <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[wbTemplate_HandleError]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbParentType">[in_wbParentType]</InArgument>
+                  <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
+                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec or businessRuleException]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_LogLevel">[if(in_wbFinalExec or businessRuleException, "Error", "Warn")]</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_LogMessage">["Work Block "+ wbTemplate_Type.toString +" failed with exception "+exception.Message+" at Source "+exception.Source]</InArgument>
+                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
+                  <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">[exception.GetType.Name]</InArgument>
+                  <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
@@ -162,7 +156,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d21DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xGcmFtZXdvcmtcd2JUZW1wbGF0ZS54YW1sOQFfAWQBAwGHAQGPAQECTAOmAQ4CAQFONk5GAgFBT1hPoQECAUBQNFBIAgE/UTRRQwIBPVIzUkECATtTNVM7AgE6VDRUXwIBN1U0VUgCATVYB28SAgFCdwuhARYCAQJZCVmJAQIBXloJbhQCAUN7DYYBGAIBLYcBDZsBGAIBCJwBDaABEgIBA1sLbSMCAUR8D4UBGgIBLogBD5oBJwIBCZwB5AGcAdkCAgEEngERngFIAgEHX0pfXQIBXF1IXVkCAVprSGtZAgFYZlVmWQIBV2NwY4IBAgFVZVJlVgIBVGJLYmECAVJpUWljAgFQYUxhhQECAU5gSmBOAgFNZ05nUgIBTFu8AVvWAQIBS15IXloCAUlkdGR+AgFHak9qZwIBRX0RhAEaAgEvjAFOjAFhAgErigFMigFdAgEpmAFMmAFdAgEnkwFZkwFeAgEmkAF0kAGGAQIBJJIBVpIBWwIBI48BT48BZQIBIZYBVZYBZwIBH44BUI4BxQECARuNAU6NAacBAgEXlAFSlAGWAQIBE5UBVZUBbQIBEYgBwAGIAdoBAgEQiwFMiwFeAgEOkQF4kQGCAQIBDJcBU5cBawIBCoIBPYIBoQECATJ/Pn9VAgEw</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d2tDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xMaWJyYXJ5XHdiVGVtcGxhdGUueGFtbDMBXwFkAQMBhwEBjwEBAkwDoAEOAgEBTjZORgIBN080T0gCATZQM1BJAgE0UTRRZQIBMVQHahICAThyC5sBFgIBAlUJVYkBAgFSVglpFAIBOXYNgQEYAgEpggENlQEYAgEIlgENmgESAgEDVwtoIwIBOncPgAEaAgEqgwEPlAEnAgEJlgHkAZYB2QICAQSYARGYAUgCAQdZSFlZAgFQXEhcWQIBTmNVY1kCAU1kUmRWAgFMZm5meAIBSl1OXV8CAUhbS1thAgFGXlFeYwIBRGJMYoUBAgFCYUphTgIBQV9OX1ICAUBXvAFX1gECAT9aSFpaAgE9YE9gYQIBO3gRfxoCASuFAUyFAV0CASeIAUyIAV0CASWPAVmPAV4CASSQAVaQAVsCASOSAXKSAXwCASGJAVKJAWMCAR+HAU+HAWUCAR2KAVWKAWcCARuOAVCOAcUBAgEXjQFOjQGMAQIBFIsBUosBewIBEZEBVZEBbQIBD4MBwAGDAdoBAgEOhgFMhgFeAgEMjAFTjAFlAgEKfT19oQECAS56PnpVAgEs</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -228,22 +222,22 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="486,1102">
+      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="486,973">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="492,1171">
+      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="404,21">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="506,1420">
+      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="418,902">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -252,7 +246,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="546,1500" />
+      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="458,982" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
