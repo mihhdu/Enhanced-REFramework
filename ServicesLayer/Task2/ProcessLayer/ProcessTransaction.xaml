@@ -13,8 +13,6 @@
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
-    <x:Property Name="in_wbParentType" Type="InArgument(x:String)" />
-    <x:Property Name="in_wbParentLevel" Type="InArgument(x:Int32)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbParentPath" Type="InArgument(x:String)" />
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
@@ -86,7 +84,6 @@
     <TryCatch.Variables>
       <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbProcess_StartTime" />
       <Variable x:TypeArguments="x:String" Default="ProcessApps" Name="wbProcess_Type" />
-      <Variable x:TypeArguments="x:Int32" Default="[in_wbParentLevel+1]" Name="wbProcess_Level" />
       <Variable x:TypeArguments="x:String" Default="[in_wbParentPath+&quot;|&quot;+wbProcess_Type]" Name="wbProcess_Path" />
     </TryCatch.Variables>
     <TryCatch.Try>
@@ -103,10 +100,8 @@
           <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke wbLogging workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_4" UnSafe="False" WorkflowFileName="Framework\wbLogging.xaml">
             <ui:InvokeWorkflowFile.Arguments>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcess_Type]</InArgument>
-              <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcess_Level]</InArgument>
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcess_StartTime]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbParentType">[in_wbParentType]</InArgument>
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
@@ -165,10 +160,8 @@
                 <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke wbLogging workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_5" UnSafe="False" WorkflowFileName="Framework\wbLogging.xaml">
                   <ui:InvokeWorkflowFile.Arguments>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcess_Type]</InArgument>
-                    <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcess_Level]</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcess_StartTime]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_wbParentType">[in_wbParentType]</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                     <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec OR businessRuleException]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
@@ -200,7 +193,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d4wBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMVxQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWxFAW8BdAECVQPMAQ4CAQFXNldGAgFFWDRYQQIBRFkzWUkCAUJaNFpkAgE/XQeDARICAUaLAQvHARYCAQJeCV6MAQIBal8JggEUAgFHjwENmgEYAgE3mwENwQEYAgEIwgENxgESAgEDYAtmHQIBZmcLeCMCAUx5C4EBIAIBSJABD5kBGgIBOJwBD8ABGgIBCcIB5AHCAdkCAgEExAERxAFJAgEHZFJkYAIBaWNSY2ACAWhiTmKPAQIBZ2lIaVgCAWRsSGxYAgFic1VzWQIBYXRSdFcCAWB2bnZ4AgFebU5tXwIBXGtLa2ACAVpuUW5jAgFYckxy4gECAVRxSnFOAgFTb05vUgIBUme8AWfWAQIBUWpIalkCAU9wT3BhAgFNfDh8RwIBS304fUsCAUp+OH5LAgFJkQERmAEaAgE5nQERnQGAAQIBNJ4BEaQBIwIBMKUBEbYBKQIBDrcBEb8BJgIBCpYBPZYBoQECATyTAT6TAVUCATqdAR+dATgCATWiAViiAWYCATOhAVihAWYCATKgAVSgAZUBAgExpwFOpwFeAgEuqgFOqgFeAgEssQFbsQFgAgErsgFYsgFdAgEqtAF0tAF+AgEoqwFUqwFlAgEmqQFRqQFmAgEkrAFXrAFpAgEisAFSsAGkAgIBHK8BUK8BjgECARmtAVStAX0CARazAVezAW8CARSlAcIBpQHcAQIBE6gBTqgBXwIBEa4BVa4BZwIBD7oBProBTQIBDbsBPrsBUQIBDLwBPrwBUQIBCw==</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d4wBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMVxQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWxAAW8BdAECUwPFAQ4CAQFVNlVGAgE/VjRWQQIBPlc0V2QCATtaB34SAgFAhgELwAEWAgECWwlbjAECAWBcCX0UAgFBigENlQEYAgEzlgENugEYAgEIuwENvwESAgEDXQtjHQIBXGQLcyMCAUZ0C3wgAgFCiwEPlAEaAgE0lwEPuQEaAgEJuwHkAbsB2QICAQS9ARG9AUkCAQdhUmFgAgFfYFJgYAIBXl9OX48BAgFdZkhmWAIBWmhIaFgCAVhuVW5ZAgFXb1JvVwIBVnFucXgCAVRnS2dgAgFSaVFpYwIBUG1MbeIBAgFMbEpsTgIBS2pOalICAUpkvAFk1gECAUlrT2thAgFHdzh3RwIBRXg4eEsCAUR5OHlLAgFDjAERkwEaAgE1mAERmAGAAQIBMJkBEZ8BIwIBLKABEa8BKQIBDrABEbgBJgIBCpEBPZEBoQECATiOAT6OAVUCATaYAR+YATgCATGdAVidAWYCAS+cAVicAWYCAS6bAVSbAZUBAgEtogFOogFeAgEqpAFOpAFeAgEoqgFbqgFgAgEnqwFYqwFdAgEmrQF0rQF+AgEkowFRowFmAgEipQFXpQFpAgEgqQFSqQGkAgIBGqgBUKgBjgECARemAVSmAX0CARSsAVesAW8CARKgAcIBoAHcAQIBEacBVacBZwIBD7MBPrMBTQIBDbQBPrQBUQIBDLUBPrUBUQIBCw==</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -311,22 +304,22 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="404,21">
+      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="536,1781">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="418,1170">
+      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="550,2015">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="458,1250" />
+      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="590,2135" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

@@ -12,8 +12,6 @@
  xmlns:ui="http://schemas.uipath.com/workflow/activities"
  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <x:Members>
-    <x:Property Name="in_wbParentType" Type="InArgument(x:String)" />
-    <x:Property Name="in_wbParentLevel" Type="InArgument(x:Int32)" />
     <x:Property Name="in_wbParentStart" Type="InArgument(s:DateTime)" />
     <x:Property Name="in_wbParentPath" Type="InArgument(x:String)" />
     <x:Property Name="in_wbFinalExec" Type="InArgument(x:Boolean)" />
@@ -84,7 +82,6 @@
     <TryCatch.Variables>
       <Variable x:TypeArguments="s:DateTime" Default="[datetime.Now]" Name="wbProcess_StartTime" />
       <Variable x:TypeArguments="x:String" Default="ProcessApps" Name="wbProcess_Type" />
-      <Variable x:TypeArguments="x:Int32" Default="[in_wbParentLevel+1]" Name="wbProcess_Level" />
       <Variable x:TypeArguments="x:String" Default="[in_wbParentPath+&quot;|&quot;+wbProcess_Type]" Name="wbProcess_Path" />
     </TryCatch.Variables>
     <TryCatch.Try>
@@ -101,10 +98,8 @@
           <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke wbLogging workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_4" UnSafe="False" WorkflowFileName="Framework\wbLogging.xaml">
             <ui:InvokeWorkflowFile.Arguments>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcess_Type]</InArgument>
-              <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcess_Level]</InArgument>
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcess_StartTime]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbParentType">[in_wbParentType]</InArgument>
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
@@ -163,10 +158,8 @@
                 <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke wbLogging workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_5" UnSafe="False" WorkflowFileName="Framework\wbLogging.xaml">
                   <ui:InvokeWorkflowFile.Arguments>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbProcess_Type]</InArgument>
-                    <InArgument x:TypeArguments="x:Int32" x:Key="in_wbLevel">[wbProcess_Level]</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbProcess_StartTime]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbProcess_Path]</InArgument>
-                    <InArgument x:TypeArguments="x:String" x:Key="in_wbParentType">[in_wbParentType]</InArgument>
                     <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                     <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec OR businessRuleException]</InArgument>
                     <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
@@ -198,7 +191,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d44BQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxHZXREYXRhXFByb2Nlc3NMYXllclxQcm9jZXNzVHJhbnNhY3Rpb24ueGFtbEUBbwF0AQJTA8oBDgIBAVU2VUYCAUVWNFZBAgFEVzNXSQIBQlg0WGQCAT9bB4EBEgIBRokBC8UBFgIBAlwJXIwBAgFqXQmAARQCAUeNAQ2YARgCATeZAQ2/ARgCAQjAAQ3EARICAQNeC2QdAgFmZQt2IwIBTHcLfyACAUiOAQ+XARoCATiaAQ++ARoCAQnAAeQBwAHZAgIBBMIBEcIBSQIBB2JSYmACAWlhUmFgAgFoYE5gjwECAWdnSGdYAgFkakhqWAIBYnFVcVkCAWFyUnJXAgFgdG50eAIBXmtOa18CAVxpS2lgAgFabFFsYwIBWHBMcOIBAgFUb0pvTgIBU21ObVICAVJlvAFl1gECAVFoSGhZAgFPbk9uYQIBTXo4ekcCAUt7OHtLAgFKfDh8SwIBSY8BEZYBGgIBOZsBEZsBgAECATScARGiASMCATCjARG0ASkCAQ61ARG9ASYCAQqUAT2UAaEBAgE8kQE+kQFVAgE6mwEfmwE4AgE1oAFYoAFmAgEznwFYnwFmAgEyngFUngGVAQIBMaUBTqUBXgIBLqgBTqgBXgIBLK8BW68BYAIBK7ABWLABXQIBKrIBdLIBfgIBKKkBVKkBZQIBJqcBUacBZgIBJKoBV6oBaQIBIq4BUq4BpAICARytAVCtAY4BAgEZqwFUqwF9AgEWsQFXsQFvAgEUowHCAaMB3AECAROmAU6mAV8CARGsAVWsAWcCAQ+4AT64AU0CAQ25AT65AVECAQy6AT66AVECAQs=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d44BQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxHZXREYXRhXFByb2Nlc3NMYXllclxQcm9jZXNzVHJhbnNhY3Rpb24ueGFtbEABbwF0AQJRA8MBDgIBAVM2U0YCAT9UNFRBAgE+VTRVZAIBO1gHfBICAUCEAQu+ARYCAQJZCVmMAQIBYFoJexQCAUGIAQ2TARgCATOUAQ24ARgCAQi5AQ29ARICAQNbC2EdAgFcYgtxIwIBRnILeiACAUKJAQ+SARoCATSVAQ+3ARoCAQm5AeQBuQHZAgIBBLsBEbsBSQIBB19SX2ACAV9eUl5gAgFeXU5djwECAV1kSGRYAgFaZkhmWAIBWGxVbFkCAVdtUm1XAgFWb25veAIBVGVLZWACAVJnUWdjAgFQa0xr4gECAUxqSmpOAgFLaE5oUgIBSmK8AWLWAQIBSWlPaWECAUd1OHVHAgFFdjh2SwIBRHc4d0sCAUOKARGRARoCATWWARGWAYABAgEwlwERnQEjAgEsngERrQEpAgEOrgERtgEmAgEKjwE9jwGhAQIBOIwBPowBVQIBNpYBH5YBOAIBMZsBWJsBZgIBL5oBWJoBZgIBLpkBVJkBlQECAS2gAU6gAV4CASqiAU6iAV4CASioAVuoAWACASepAVipAV0CASarAXSrAX4CASShAVGhAWYCASKjAVejAWkCASCnAVKnAaQCAgEapgFQpgGOAQIBF6QBVKQBfQIBFKoBV6oBbwIBEp4BwgGeAdwBAgERpQFVpQFnAgEPsQE+sQFNAgENsgE+sgFRAgEMswE+swFRAgEL</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
