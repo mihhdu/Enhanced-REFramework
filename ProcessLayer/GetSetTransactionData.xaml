@@ -19,7 +19,7 @@
     <x:Property Name="io_Audit" Type="InOutArgument(scg:List(scg:Dictionary(x:String, x:Object)))" />
     <x:Property Name="in_Config" Type="InArgument(scg:Dictionary(x:String, x:Object))" />
     <x:Property Name="io_TransactionItem" Type="InOutArgument(ui:QueueItem)" />
-    <x:Property Name="io_TransactionData" Type="InOutArgument(sd:DataTable)" />
+    <x:Property Name="io_TransactionData" Type="InOutArgument(scg:List(sd:DataRow))" />
     <x:Property Name="in_TransactionNumber" Type="InArgument(x:Int32)" />
     <x:Property Name="in_RetryNumber" Type="InArgument(x:Int32)" />
   </x:Members>
@@ -83,7 +83,6 @@
     <Sequence.Variables>
       <Variable x:TypeArguments="x:Boolean" Name="flagFirstApplicationRun" />
       <Variable x:TypeArguments="x:Boolean" Name="flagFirstLocalTransactionRun" />
-      <Variable x:TypeArguments="x:Boolean" Name="flagGetDataServiceRunEnabled" />
     </Sequence.Variables>
     <Sequence sap2010:Annotation.AnnotationText="Set Helper Flags and invoke GetData Service based on Config setting" DisplayName="Set Helper Flags" sap2010:WorkflowViewState.IdRef="Sequence_9">
       <Assign DisplayName="Set First Application Run flag" sap2010:WorkflowViewState.IdRef="Assign_1">
@@ -102,54 +101,17 @@
           <InArgument x:TypeArguments="x:Boolean">[in_RetryNumber = 0]</InArgument>
         </Assign.Value>
       </Assign>
-      <Assign sap2010:Annotation.AnnotationText="Set the flag that will run The GetData service if you need to get data from an Application, website or Resource that might fail. Use the Config and Not this flag enable or disable it." DisplayName="Set run GetData service Flag" sap2010:WorkflowViewState.IdRef="Assign_8">
-        <Assign.To>
-          <OutArgument x:TypeArguments="x:Boolean">[flagGetDataServiceRunEnabled]</OutArgument>
-        </Assign.To>
-        <Assign.Value>
-          <InArgument x:TypeArguments="x:Boolean">[(cint(in_Config.Item("SystemTask2_Enable"))=1 AND flagFirstApplicationRun) OR (cint(in_Config.Item("SystemTask2_Enable"))=2)]</InArgument>
-        </Assign.Value>
-      </Assign>
-      <If Condition="[flagGetDataServiceRunEnabled]" DisplayName="Configure the run Condition of this Service in Config.xlsx" sap2010:WorkflowViewState.IdRef="If_2">
-        <If.Then>
-          <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" sap2010:Annotation.AnnotationText="Make sure to pass io_Transaction data if you need the service to fetch data for you." DisplayName="Invoke FirstRunMain workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_4" UnSafe="False" WorkflowFileName="ServicesLayer\GetData\Main.xaml">
-            <ui:InvokeWorkflowFile.Arguments>
-              <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbParentPath">[in_wbParentPath]</InArgument>
-              <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
-              <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
-              <OutArgument x:TypeArguments="scg:List(sd:DataRow)" x:Key="io_TransactionData" />
-            </ui:InvokeWorkflowFile.Arguments>
-          </ui:InvokeWorkflowFile>
-        </If.Then>
-      </If>
     </Sequence>
     <Sequence DisplayName="Processing" sap2010:WorkflowViewState.IdRef="Sequence_7">
       <ui:GetQueueItem TimeoutMS="{x:Null}" DisplayName="Get Transaction Item" sap2010:WorkflowViewState.IdRef="GetQueueItem_2" QueueType="[in_Config(&quot;OrchestratorQueueName&quot;).ToString]" TransactionItem="[io_TransactionItem]" />
     </Sequence>
-    <sads:DebugSymbol.Symbol>d3tDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcR2V0U2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwYUgOEAQ4CAQFYBX8QAgEIgAEFggEQAgECWQdgEAIBJGEHaBACAR9pB3AQAgEYcQd+DAIBCYEBB4EB7gECAQNeM15kAgEnWzRbTQIBJWYzZkcCASJjNGNSAgEgbjNusQECARtrNGtSAgEZcRVxNQIBCnMLfCMCAQyBAYsBgQHEAQIBBoEB1QGBAesBAgEEeW55eAIBFnVRdWMCARR2TnZfAgESd053XgIBEHO4AnPZAgIBD3hPeGECAQ0=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d3tDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xQcm9jZXNzTGF5ZXJcR2V0U2V0VHJhbnNhY3Rpb25EYXRhLnhhbWwMUgNtDgIBAVcFaBACAQhpBWsQAgECWAdfEAIBDmAHZxACAQlqB2ruAQIBA10zXWQCARFaNFpNAgEPZTNlRwIBDGI0YlICAQpqiwFqxAECAQZq1QFq6wECAQQ=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
-      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="464,60" />
-      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="464,60" />
-      <sap2010:ViewStateData Id="Assign_8" sap:VirtualizedContainerService.HintSize="464,147">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_4" sap:VirtualizedContainerService.HintSize="314,129">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="464,277" />
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="486,815">
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Assign_2" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="264,326">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -158,7 +120,7 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="GetQueueItem_2" sap:VirtualizedContainerService.HintSize="200,22" />
-      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="486,146">
+      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="264,146">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -166,7 +128,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="508,1302">
+      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="286,948">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -175,7 +137,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="548,1382" />
+      <sap2010:ViewStateData Id="GetTransactionData_1" sap:VirtualizedContainerService.HintSize="326,1108" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
