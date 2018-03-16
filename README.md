@@ -50,10 +50,15 @@ Ignore errors being generated for the moment.
 5. Open Main.xaml and update the inferfaces to the functions in the **GET/SET TRANSACTION DATA** and **PROCESS TRANSACTION** states by clicking the import button. The errors from point 1. should now dissapear.
 
 6. Begin writing business code in the workflows located in the *ProcessLayer* folder
+
 *ProcessLayer\InitAllApplications.xaml* - write business code to open all applications needed during processing.
-*ProcessLayer\CloseAllApplications.xaml* - write business code to close all applications you have opened at previous step
-*ProcessLayer\KillAllProcesses.xaml* - write business code to kill all applications (only invoked when applications not responding)
+
+*ProcessLayer\CloseAllApplications.xaml* - write business code to close all applications you have opened at previous step.
+
+*ProcessLayer\KillAllProcesses.xaml* - write business code to kill all applications (only invoked when applications not responding).
+
 *ProcessLayer\GetTransactionData.xaml* - write business code to fetch data for the current transaction and save/write it to the io_TransactionItem variable. Decide when the process will end by setting io_TransactinItem to Nothing. Make use of external iterator in_TransactionNumber and in_RetryNumber if io_TransactionItem is an element of io_TransactionData. (Ex. io_TransactionItem = io_TransactionData(in_TransactionNumber - 1).
+
 *ProcessLayer\ProcessTransaction.xaml* - write business code to use applications that are open and data from io_TransactionItem and complete the transaction. At the end of the transaction, take the applications to the page they were at when you began the transaction. 
 
 7. Execute and have fun! 
