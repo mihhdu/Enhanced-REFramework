@@ -36,20 +36,20 @@ To begin implementing take the following steps:
 
 1. Check out the *Data\Config.xlsx* file and add/customize any required fields and values. Also change the names of workblocks and enable system tasks if you need them.
 
-1. Decide what the process is going to achieve. Think about what kind of data is moving around in the process. Think about wheather or not it is a cyclical process or executes just once. 
+2. Decide what the process is going to achieve. Think about what kind of data is moving around in the process. Think about wheather or not it is a cyclical process or executes just once. 
 
-2. Go in Main.xaml and change the following data types to suit your project needs:
+3. Go in Main.xaml and change the following data types to suit your project needs:
 TransactionItem - by default a QueueItem represents one transaction worth of data
 TransactionData - by default a Datatable represents the collection of transaction data to be used in this process run
 Ignore errors being generated for the moment. 
 
-3. Open *ProcessLayer\GetSetTransactionData.xaml* and change io_TransactionItem and io_TransactionData datatypes to match the ones you set up in the Main.xaml file.
+4. Open *ProcessLayer\GetSetTransactionData.xaml* and change io_TransactionItem and io_TransactionData datatypes to match the ones you set up in the Main.xaml file.
 
-4. Open *ProcessLayer\ProcessTransaction.xaml* and change io_TransactionItem's datatype to match the one you set up in the Main.xaml file.
+5. Open *ProcessLayer\ProcessTransaction.xaml* and change io_TransactionItem's datatype to match the one you set up in the Main.xaml file.
 
-5. Open Main.xaml and update the inferfaces to the functions in the **GET/SET TRANSACTION DATA** and **PROCESS TRANSACTION** states by clicking the import button. The errors from point 1. should now dissapear.
+6. Open Main.xaml and update the inferfaces to the functions in the **GET/SET TRANSACTION DATA** and **PROCESS TRANSACTION** states by clicking the import button. The errors from point 1. should now dissapear.
 
-6. Begin writing business code in the workflows located in the *ProcessLayer* folder
+7. Begin writing business code in the workflows located in the *ProcessLayer* folder
 
 *ProcessLayer\InitAllApplications.xaml* - write business code to open all applications needed during processing.
 
@@ -61,5 +61,5 @@ Ignore errors being generated for the moment.
 
 *ProcessLayer\ProcessTransaction.xaml* - write business code to use applications that are open and data from io_TransactionItem and complete the transaction. At the end of the transaction, take the applications to the page they were at when you began the transaction. 
 
-7. Execute and have fun! 
+8. Execute and have fun! 
 
