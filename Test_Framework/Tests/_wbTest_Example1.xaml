@@ -77,6 +77,7 @@
       <Variable x:TypeArguments="x:String" Default="_wbTest_Example1" Name="wbTemplate_Type" />
       <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Name="Config" />
       <Variable x:TypeArguments="x:String" Default="[in_wbParentPath+&quot;|&quot;+wbTemplate_Type]" Name="wbTemplate_Path" />
+      <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[new list(of dictionary(of string,object))]" Name="wbTemplate_Audit" />
     </TryCatch.Variables>
     <TryCatch.Try>
       <Sequence DisplayName="Try processing wbTemplate" sap2010:WorkflowViewState.IdRef="Sequence_3">
@@ -117,6 +118,7 @@
               <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbTemplate_Type]</InArgument>
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbTemplate_StartTime]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
+              <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbTemplate_Audit]</InArgument>
               <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
@@ -125,7 +127,7 @@
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">True</InArgument>
               <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType" />
-              <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
+              <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
             </ui:InvokeWorkflowFile.Arguments>
           </ui:InvokeWorkflowFile>
         </Sequence>
@@ -145,6 +147,7 @@
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[wbTemplate_Type]</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbStart">[wbTemplate_StartTime]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbPath">[wbTemplate_Path]</InArgument>
+                  <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_ChildAudit">[wbTemplate_Audit]</InArgument>
                   <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[in_wbParentStart]</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">[in_wbFinalExec]</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbHandleError">[in_wbHandleError]</InArgument>
@@ -153,7 +156,7 @@
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbStatusSuccessful">False</InArgument>
                   <InArgument x:TypeArguments="x:Boolean" x:Key="in_SuppressLogging">False</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="in_wbExceptionType">[exception.GetType.Name]</InArgument>
-                  <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[io_Audit]</InOutArgument>
+                  <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_ParentAudit">[io_Audit]</InOutArgument>
                 </ui:InvokeWorkflowFile.Arguments>
               </ui:InvokeWorkflowFile>
             </Sequence>
@@ -166,7 +169,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d35DOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcR29vZ2xlIERyaXZlXFdvcmtzcGFjZVxVaVBhdGhcVGVtcGxhdGVzXFVpUGF0aF9SRUZyYW1ld29ya1xUZXN0X0ZyYW1ld29ya1xUZXN0c1xfd2JUZXN0X0V4YW1wbGUxLnhhbWw+AV8BZAEDAYcBAY8BAQJKA6oBDgIBAUw2TEYCAShNNE1GAgEnTzRPZQIBJFIHhAESAgEpjAELpQEWAgECUwlxFAIBQHIJgwEUAgEqjQENjQG/AQIBI44BDZ8BGAIBCKABDaQBEgIBA1U6VU8CAUFXC18WAgFRYAtuFgIBRG8Lb6UCAgFDcAtwpQECAUJzC4IBIwIBK48BD54BJwIBCaAB5AGgAdkCAgEEogERogFIAgEHWA1eJQIBUmENbBICAUdtDW2WAQIBRXVIdVkCAT53SHdZAgE8fVV9WQIBO35SflcCATqAAW6AAXgCATh2S3ZhAgE2eFF4YwIBNHxMfIUBAgEye0p7TgIBMXlOeV4CAS9zvAFz1gECAS56T3phAgEskQFMkQFdAgEhkwFMkwFdAgEfmQFZmQFeAgEemgFWmgFbAgEdnAFynAF8AgEbkgFPkgFlAgEZlAFVlAFnAgEXmAFQmAHFAQIBE5cBTpcBcwIBEZUBUpUBYgIBD5sBVZsBbQIBDY8BwAGPAdoBAgEMlgFTlgFlAgEKXGZcbgIBVljEAVjkAQIBVVtSW5MBAgFUWk5aXgIBU2EbYTYCAUhjEWOXAQIBT2YRahYCAUptP21pAgFGYzxjagIBUGYfZjoCAUtoFWijAQIBTWg+aHYCAU4=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d5wBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XEdvb2dsZSBEcml2ZVxXb3Jrc3BhY2VcVWlQYXRoXFRlbXBsYXRlc1xVaVBhdGhfUkVGcmFtZXdvcmtfTG9jYWxBdWRpdFxVaVBhdGhfUkVGcmFtZXdvcmtcVGVzdF9GcmFtZXdvcmtcVGVzdHNcX3diVGVzdF9FeGFtcGxlMS54YW1sQQFfAWQBAwGHAQGPAQECSgOtAQ4CAQFMNkxGAgErTTRNRgIBKk80T2UCASdQWFCFAQIBJlMHhgESAgEsjgELqAEWAgECVAlyFAIBRXMJhQEUAgEtjwENjwGhAgIBJZABDaIBGAIBCKMBDacBEgIBA1Y6Vk8CAUZYC2AWAgFWYQtvFgIBSXALcKUCAgFIcQtxpQECAUd0C4QBIwIBLpEBD6EBJwIBCaMB5AGjAdkCAgEEpQERpQFIAgEHWQ1fJQIBV2INbRICAUxuDW6WAQIBSnZIdlkCAUN4SHhZAgFBf1V/WQIBQHlweYIBAgE+gAFSgAFXAgE9d0t3YQIBO3pRemMCATl+TH6FAQIBN31KfU4CATZ7TnteAgE0dLwBdNYBAgEzggF0ggF+AgExfE98YQIBL5MBTJMBXQIBI5UBTJUBXQIBIZwBWZwBXgIBIJYBdJYBhgECAR6dAVadAVsCAR2UAU+UAWUCARuXAVWXAWcCARmbAVCbAcUBAgEVmgFOmgFzAgETmAFSmAFiAgERngFVngFtAgEPkQHAAZEB2gECAQ6fAXifAYIBAgEMmQFTmQFlAgEKXWZdbgIBW1nEAVnkAQIBWlxSXJMBAgFZW05bXgIBWGIbYjYCAU1kEWSXAQIBVGcRaxYCAU9uP25pAgFLZDxkagIBVWcfZzoCAVBpFWmjAQIBUmk+aXYCAVM=</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -251,7 +254,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_17" sap:VirtualizedContainerService.HintSize="464,141">
+      <sap2010:ViewStateData Id="Sequence_17" sap:VirtualizedContainerService.HintSize="464,186">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -278,14 +281,14 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="486,893">
+      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="486,938">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="492,962">
+      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="492,1007">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -293,7 +296,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="506,1211">
+      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="506,1256">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -302,7 +305,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="546,1291" />
+      <sap2010:ViewStateData Id="wbTemplate_1" sap:VirtualizedContainerService.HintSize="546,1376" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
