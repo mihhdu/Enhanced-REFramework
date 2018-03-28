@@ -1,0 +1,59 @@
+Goals of the update:
+Provide a clear structure to the framework, both in project folder structure as well as code wise.
+Separate it in layers such that the framework layer provides an easily configurable engine for running diverse processes.
+Make the business logic components easily accessible.
+Keep the same business logic components ("InitAllApplications.xaml", "GetSetTransactionData.xaml", "ProcessTransaction.xaml", "CloseAllApplications.xaml", "KillallProcesses.xaml"), making migration from previous version seasmless.
+
+Changelog:
+
+1. Framework is now composed of Work Blocks. Each work block represents the minimal run and log structure. It is made up of a try-catch block. Within the Try section, the code we want to execute. After executing we log success, gathering runtime and hierarchical information from child Workblocks and passing it on to parent the Workblock. If an exception occurs within the code, the work block will catch the exception, log the failure, output the exception and act as instructed by the "wbHandleError" flag.
+As such, the framework layer has 4 Workblocks. A master Workblock, let's call it "MainTask". This workblock has three child Workblocks: "Init", "GetSetData" and "Process".
+
+The following log fields need to be logged, at a minimum level, in each work block:
+
+//Link to Sorin Stania's article
+
+Add Hierarchy Log Fields:
+wbType: String = wbName; //Work Block name. Must be unique per process
+wbParent: String = wbParent; //Parent Work Block name (wbType of parent)
+wbLevel: int32 =  wbLevel; //Parent wbLevel+1
+
+Add Execution Log Fields:
+wbStart: DateTime = now(); //Start of execution timestamp for current Workblock
+wbDurationHrs: String = ;//duration of execution in hours
+wbDurationSec: String = ;//duration of execution in seconds
+wbStatus: String = ;//If the current Workblock is successful and all child Workblocks are also successful then set "Successful", If the current workblock is successful and some child workblocks have failed then set "Finished with Exceptions", if currect workblock failed then "Failed" - this requires that we pass the number of successful and failed child work blocks up the calling tree;
+
+The following rules should be applied to Workblocks:
+
+wbType should be unique
+There should be exactly one log message containing the status of the Workblock execution, at the end of the Workblock.
+We should be wise in not generating a large quantity of log data by not logging successful work block executions for every single Workblock.
+
+2. Organize Config.xlsx better by creating the following extra sheets:
+a) introduction sheet (write some documentation with regard to the Config)
+b) credentials sheet (place credentials here)
+c) Workblock sheet (name Workblocks running in the framework layer here)
+d) tasks sheet (details about services layer on)
+
+3. Separate the different components of the framework into layers:
+a) Framework layer (the main dataflow representation, a state machine, calling different components of code)
+b) Data layer (GetSetTransactionData.xaml)
+c) Business Process layer (the workflows that need to be modified to achieve the desired process behavior - InitAllApplications.xaml, CloseAllApplications.xaml, KillAllApplications.xaml, ProcessTransaction.xaml)
+
+4. Reorganize the existing framework folder structure differently, in the following sense:
+All workflows that need to be modified by the developer of the process should be placed in the same physical folder within the project, the ProcessLayer folder.
+
+5. Implement a pluggable services/tasks layer. Services are found within the ServiceLayer folder. Each task has it's own ProcessLayer folder and Config.xlsx
+A task is a standard framework that will act like a slave running within the main workflow. The framework now implements two system services, "FirstRunTask" and "GetDataTask". Both are off by default. If enabled:
+a) FirstRunTask will run only once, at the start of the process. Possible use case: queue dispatcher
+b) GetDataTask will either run once, on the first process run, or on every process run. Possible use case: The data needed for processing is obtained from a resource that can fail (for example, a website). You simply then configure GetDataTask to independently get your data and output it in the main task.
+
+The framework includes two more task examples, "Task1" and "Task2", that could be called in the ProcessTransaction.xaml file. It's useful when, within a process, we need to work with multiple independent applications. Instead of implementin everything within the process section, we simply launch a service that solves said task.
+
+6. Modifications to framework functions:
+* Global Variables that are needed by the system, such as the iterators RetryNumber and TransactionNumber but also system flags now reside in a dictionary<string, object> named SystemReserved.
+* SetTransactionStatus.xaml has now disappeared. The section of code that manages the transaction iterator, the RetryNumber and TransactionNumber is written directly in the state machine transitions.
+* CloseAllApplications.xaml called in case of recovery from System Error is now called in the InitLayer. KillAllApplications.xaml is now called in the try catch of the CloseAllApplications.xaml file, allowing better dev control without touching the framework layer.
+A direct result is that it is now easy to implement Init state retrying, as both InitAllApplications.xaml and CloseAllApplications.xaml are called in this state.
+* When TrainsactionItem is a QueueItem, use GetQueueMaxRetries.xaml to query Orchestrator server and obtain maximum retry information. This function uses 2018.1 REST API authentication through the robot, and is not compatible to previous versions.
