@@ -1,7 +1,7 @@
 ### Enhanced ReFrameWork Template ###
 **Enhanced Robotic Enterprise Framework**
 
-A UiPath Studio template upon which you can build attended and unattended businesss processes.
+A UiPath Studio template upon which you can build, test and run attended and unattended businesss processes.
 
 Features: 
 * Separation Of Concerns: we keep framework implementation separate from business logic code.
