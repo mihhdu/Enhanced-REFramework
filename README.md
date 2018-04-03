@@ -4,6 +4,7 @@
 A UiPath Studio template upon which you can build, test and run attended and unattended business processes.
 
 Features: 
+* Low code signature: A handful of clearly written, commented reusable functions written in VB.NET that anyone can understand and a Main.xlsx bringing structure to the process design architecture
 * Separation Of Concerns: we keep framework implementation separate from business logic code.
 * Reusability: you can use it for any kind of process. 
 * Maintain and upgrade: easy to maintain, customize and upgrade framework independently of business code.
