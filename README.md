@@ -3,13 +3,13 @@
 
 A UiPath Studio template upon which you can build, test and run attended and unattended business processes.
 
-Features: 
+Features:
 * Low code signature: A handful of clearly written, commented reusable functions written in VB.NET that anyone can understand and a Main.xlsx bringing structure to the process design architecture
-* Separation Of Concerns: we keep framework implementation separate from business logic code.
-* Reusability: you can use it for any kind of process. 
-* Maintain, upgrade, extend: easy to maintain, upgrade and extend the framework independently of business code.
-* Exception Recovery and Retry: recover from exceptions and retry failed transaction or continue.
-* Audit: keep track of the robot's work, with as much detail and privacy as you choose.
+* Separation Of Concerns: We keep framework implementation separate from business logic code, allowing developers and SMEs alike to focus on developing business logic code.
+* Reusability: Works for any type of process, Independent of Data sources (QueueItems, local excel files, Database data, API retrieved data), Independent of process linearity
+* Maintain, Upgrade, Extend: easy to Maintain, thanks to code lightness and SOC; Upgrade or extend framework independently of business code, by editing only one file; Extend to achieve process behavior by editing 5 empty workflows that connect to the Main with a standard interface.
+* Exception Recovery and Retry: If all recovery options are exhausted, closing and restarting the application environment while remembering your data is what humans do too. Top-level exception recovery is managed by the framework layer.
+* Audit: Keep track of the robot's work, with as much detail and privacy as you choose with the new Workblock concept; Add business information of your choosing to the published log.
 
 Details:
 
