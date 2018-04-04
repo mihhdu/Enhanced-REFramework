@@ -1,19 +1,22 @@
 ### Enhanced ReFrameWork Template ###
 **Enhanced Robotic Enterprise Framework**
 
-The role of the framework is to be an engine that will run business logic in a safe and reproducible manner. This engine should serves the following purpose:
+A UiPath Studio template upon which you can build, test and run attended and unattended business processes.
 
-* deliver a platform upon which to build business logic
-* run and report on execution of said business logic.
-* manage transaction exception recovery independently of the business logic.
-* offer a mechanism to abort process execution in certain cases where continuing is destructive.
-* achieve layer separation (business only edits business code).
+Features: 
+* Low code signature: A handful of clearly written, commented reusable functions written in VB.NET that anyone can understand and a Main.xlsx bringing structure to the process design architecture
+* Separation Of Concerns: we keep framework implementation separate from business logic code.
+* Reusability: you can use it for any kind of process. 
+* Maintain, upgrade, extend: easy to maintain, upgrade and extend the framework independently of business code.
+* Exception Recovery and Retry: recover from exceptions and retry failed transaction or continue.
+* Audit: keep track of the robot's work, with as much detail and privacy as you choose.
 
-Features:
+Details:
 
 * composed of configurable functional components called Workblocks.
 * using *State Machine* layout with Workblocks in each state.
 * offering high level exception handling and application recovery.
+* offer a mechanism to abort process execution in certain cases where continuing is distructive
 * keeps external settings in *Data\Config.xlsx* file and Orchestrator assets.
 * pulls credentials from *Credential Manager* and Orchestrator assets.
 * takes screenshots in case of application exceptions.
