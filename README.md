@@ -4,11 +4,11 @@
 A UiPath Studio template upon which you can build, test and run attended and unattended business processes.
 
 Features:
-* Low code signature: A handful of clearly written, commented reusable functions written in VB.NET that anyone can understand and a Main.xlsx bringing structure to the process design architecture
-* Separation Of Concerns: We keep framework implementation separate from business logic code, allowing developers and SMEs alike to focus on developing business logic code.
+* Low code signature: A handful of clearly written, commented reusable functions that anyone can understand and a clearly commented Main.xaml bringing structure to the process design architecture.
+* Separation of concerns: We keep framework implementation separate from business logic code, allowing developers and SMEs alike to focus on building processes.
 * Reusability: Works for any type of process, Independent of Data sources (QueueItems, local excel files, Database data, API retrieved data), Independent of process linearity
-* Maintain, Upgrade, Extend: easy to Maintain, thanks to code lightness and SOC; Upgrade or extend framework independently of business code, by editing only one file; Extend to achieve process behavior by editing 5 empty workflows that connect to the Main with a standard interface.
-* Exception Recovery and Retry: If all recovery options are exhausted, closing and restarting the application environment while remembering your data is what humans do too. Top-level exception recovery is managed by the framework layer.
+* Maintain, extend and upgrade: Easy to maintain, thanks to code lightness and SOC. Extend to achieve process behaviour by editing 5 empty workflows that connect to the Main.xaml in a standard way. Upgrade or extend framework independently of business code, by editing only one file, the Main.xaml.
+* Exception recovery and retry: If all recovery options are exhausted, closing and restarting the application environment while remembering data is what humans do too. Top-level exception recovery is managed by the framework layer with Retry rules you can easily configure.
 * Audit: Keep track of the robot's work, with as much detail and privacy as you choose with the new Workblock concept; Add business information of your choosing to the published log.
 
 Details:
