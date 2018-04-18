@@ -29,7 +29,7 @@ Changelog:
 
 Notes:
 
-1. Framework is now composed of Work Blocks. Each work block represents the minimal run and log structure. It is made up of a try-catch block. Within the Try section, the code we want to execute. After executing we log success, gathering runtime and hierarchical information from child Workblocks and passing it on to parent the Workblock. If an exception occurs within the code, the work block will catch the exception, log the failure, output the exception and act as instructed by the "wbHandleError" flag.
+1. Framework is now composed of Work Blocks. Each work block represents the minimal run and log structure. It is made up of a try-catch block. Within the Try section, the code we want to execute. After executing we log success, gathering runtime and hierarchical information from child Workblocks and passing it on to parent the Workblock. If an exception occurs within the code, the work block will catch the exception, log the failure, output the exception and rethrow it.
 As such, the framework layer has 4 Workblocks. A master Workblock, let's call it "MainTask". This workblock has three child Workblocks: "Init", "GetSetData" and "Process".
 
 The following log fields need to be logged, at a minimum level, in each work block:
@@ -44,10 +44,9 @@ Add Execution Log Fields:
  + wbStart - the timestamp of the start of execution
  + wbDurationSec - duration of execution in seconds
  + wbDurationHrs - duration of execution in hours
- + wbStatus - If the current workblock is successful and all child workblocks are also successful then set "Successful", If the current workblock is successful and some child workblocks have failed then set "Finished with Exceptions", if currect workblock failed then "Failed", else "SoftFailed"
+ + wbStatus - If the current workblock is successful and all child workblocks are also successful then set "Successful", If the current workblock is successful and some child workblocks have failed then set "Finished with Exceptions", if currect workblock failed then "Failed"
  + wbFinalExec - If the current workblock is successful or is at the last attempt and all parents are at the last attempt, wbFinalExec is true, else it is false
  + wbParentStart - The start time of the parent wb
- + wbHandleError - If the wb is logging in it's Catch section, it can be instructed by it's parent, through the wbHandleError flag, to "Rethrow" the exception, to "Failed" or to "SoftFail". Both "Failed" and "SoftFail" instructions mean do not rethrow. The difference between the two is "SoftFail" does not cause the parent to have a status of "Finished with Exceptions". Thus, the parent can try to solve the child's problem in another manner that could be successful.
  + wbPath - Workblock execution path to the current workblock, reflecting all ancestors and self
  + wbKey - md5Hash of wbPath+wbStart
 
