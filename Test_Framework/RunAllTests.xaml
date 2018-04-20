@@ -78,9 +78,6 @@
     <Sequence.Variables>
       <Variable x:TypeArguments="sd:DataTable" Name="dtTests" />
       <Variable x:TypeArguments="x:Int32" Default="1" Name="testRowNumber" />
-      <Variable x:TypeArguments="s:DateTime" Default="[now]" Name="runAllTests_StartTime" />
-      <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[new system.Collections.Generic.list(of dictionary(of string,object))]" Name="Statistics" />
-      <Variable x:TypeArguments="sd:DataTable" Name="dtStatistics" />
       <Variable x:TypeArguments="x:String" Name="CfgTestResultsSubfolder" />
     </Sequence.Variables>
     <Sequence DisplayName="Read Tests and initialize settings" sap2010:WorkflowViewState.IdRef="Sequence_30">
@@ -93,7 +90,7 @@
           <OutArgument x:TypeArguments="si:DirectoryInfo">[directoryInformation]</OutArgument>
         </Assign.To>
         <Assign.Value>
-          <InArgument x:TypeArguments="si:DirectoryInfo">[io.Directory.CreateDirectory(path.Combine(Environment.CurrentDirectory, in_LogResultsFolderPath, "_Tests_Run"+runAllTests_StartTime.ToString("yyMMdd.hhmmss")))]</InArgument>
+          <InArgument x:TypeArguments="si:DirectoryInfo">[io.Directory.CreateDirectory(path.Combine(Environment.CurrentDirectory, in_LogResultsFolderPath, "_Tests_Run"+now.ToString("yyMMdd.hhmmss")))]</InArgument>
         </Assign.Value>
       </Assign>
       <Assign DisplayName="Test Sub-folder" sap2010:WorkflowViewState.IdRef="Assign_28">
@@ -112,10 +109,6 @@
             <DelegateInArgument x:TypeArguments="sd:DataRow" Name="row" />
           </ActivityAction.Argument>
           <Sequence DisplayName="For each workflow tested build Results datatable" sap2010:WorkflowViewState.IdRef="Sequence_24">
-            <Sequence.Variables>
-              <Variable x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" Default="[new system.Collections.Generic.list(of dictionary(of string,object))]" Name="Audit" />
-              <Variable x:TypeArguments="sd:DataTable" Name="dtAudit" />
-            </Sequence.Variables>
             <While sap2010:Annotation.AnnotationText="Run each test the number of times it is prescribed.&#xA;This builds the Audit of the test. " DisplayName="While there are still tests to run for the current workflow" sap2010:WorkflowViewState.IdRef="While_2">
               <While.Variables>
                 <Variable x:TypeArguments="x:Int32" Default="1" Name="testIterationIndex" />
@@ -127,11 +120,7 @@
                   <TryCatch.Try>
                     <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke Tests workflows" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_11" UnSafe="False" WorkflowFileName="[row(&quot;WorkflowFile&quot;).ToString]">
                       <ui:InvokeWorkflowFile.Arguments>
-                        <InArgument x:TypeArguments="x:String" x:Key="in_wbType">[row("WorkflowFile").ToString]</InArgument>
-                        <InArgument x:TypeArguments="s:DateTime" x:Key="in_wbParentStart">[runAllTests_StartTime]</InArgument>
                         <InArgument x:TypeArguments="x:String" x:Key="in_wbParentPath">RunAllTests</InArgument>
-                        <InArgument x:TypeArguments="x:Boolean" x:Key="in_wbFinalExec">True</InArgument>
-                        <InOutArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="io_Audit">[Audit]</InOutArgument>
                       </ui:InvokeWorkflowFile.Arguments>
                     </ui:InvokeWorkflowFile>
                   </TryCatch.Try>
@@ -155,134 +144,6 @@
                 </Assign>
               </Sequence>
             </While>
-            <Sequence sap2010:Annotation.AnnotationText="Make the Audit available as a dt object. &#xA;This object is queryable for statistics. " DisplayName="Audit as datatable" sap2010:WorkflowViewState.IdRef="Sequence_26">
-              <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke listOfDictToDT workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_9" UnSafe="False" WorkflowFileName="Framework\listOfDictToDT.xaml">
-                <ui:InvokeWorkflowFile.Arguments>
-                  <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_listOfDict">[Audit]</InArgument>
-                  <OutArgument x:TypeArguments="sd:DataTable" x:Key="out_dt">[dtAudit]</OutArgument>
-                </ui:InvokeWorkflowFile.Arguments>
-              </ui:InvokeWorkflowFile>
-            </Sequence>
-            <Sequence sap2010:Annotation.AnnotationText="Statistics for the test. &#xA;&#xA;You can generate the statistics by query-ing the Audit or dtAudit object.&#xA;&#xA;You can add your own statistics." DisplayName="Statistics" sap2010:WorkflowViewState.IdRef="Sequence_27">
-              <Sequence.Variables>
-                <Variable x:TypeArguments="scg:Dictionary(x:String, x:Object)" Default="[New system.Collections.Generic.Dictionary(Of String, Object)]" Name="mappedStatisticalData" />
-              </Sequence.Variables>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;WorkflowFile&quot;, value" DisplayName="Add Key &quot;WorkflowFile&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_3" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">WorkflowFile</InArgument>
-                <InArgument x:TypeArguments="x:Object">[row("WorkflowFile").ToString]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;NumberOfRuns&quot;, value" DisplayName="Add Key &quot;NumberOfRuns&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_4" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">NumberOfRuns</InArgument>
-                <InArgument x:TypeArguments="x:Object">[row.Item("Number of Runs").ToString+" configured, "+Audit.Count.ToString+" executed"]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;AvgRunDurationSec&quot;, value" DisplayName="Add Key &quot;AvgRunDurationSec&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_5" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">AvgRunDurationSec</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Average(Function(avg) convert.ToDouble(avg.item("wbDurationSec")))]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;SumRunDurationSec&quot;, value" DisplayName="Add Key &quot;SumRunDurationSec&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_6" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">SumRunDurationSec</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Sum(Function(sum) convert.ToDouble(sum.item("wbDurationSec")))]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;AvgRunDurationHrs&quot;, value" DisplayName="Add Key &quot;AvgRunDurationHrs&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_9" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">AvgRunDurationHrs</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Average(Function(avg) convert.ToDouble(avg.item("wbDurationHrs")))]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;SumRunDurationHrs&quot;, value" DisplayName="Add Key &quot;SumRunDurationHrs&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_10" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">SumRunDurationHrs</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Sum(Function(sum) convert.ToDouble(sum.item("wbDurationHrs")))]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;wbStatusSuccess&quot;, value" DisplayName="Add Key &quot;wbStatusSuccess&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_12" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">wbStatusSuccess</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Where(Function(x) x.Item("wbStatus").ToString.Trim.ToLower="successful").Count]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;wbStatusFinishedWithEx&quot;, value" DisplayName="Add Key &quot;wbStatusFinishedWithEx&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_13" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">wbStatusFinishedWithEx</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Where(Function(x) x.Item("wbStatus").ToString.Trim.ToLower="finished with exceptions").Count]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;wbStatusFailed&quot;, value" DisplayName="Add Key &quot;wbStatusFailed&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_14" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">wbStatusFailed</InArgument>
-                <InArgument x:TypeArguments="x:Object">[Audit.Where(Function(x) x.Item("wbStatus").ToString.Trim.ToLower="failed").Count]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;TopExceptionType&quot;, value" DisplayName="Add Key &quot;TopExceptionType&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_16" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">TopExceptionType</InArgument>
-                <InArgument x:TypeArguments="x:Object">[if(Audit.Where(Function(failed) not(string.IsNullOrEmpty(failed.Item("wbExceptionType").ToString))).GroupBy(Function(status) status.Item("wbExceptionType")).OrderByDescending(Function(x) x.Count).Any, Audit.Where(Function(failed) not(string.IsNullOrEmpty(failed.Item("wbExceptionType").ToString))).GroupBy(Function(status) status.Item("wbExceptionType")).OrderByDescending(Function(x) x.Count).First.Key, "No Exceptions")]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;TopExceptionCnt&quot;, value" DisplayName="Add Key &quot;TopExceptionCnt&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_17" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">TopExceptionCnt</InArgument>
-                <InArgument x:TypeArguments="x:Object">[if(Audit.Where(Function(failed) not(string.IsNullOrEmpty(failed.Item("wbExceptionType").ToString))).GroupBy(Function(status) status.Item("wbExceptionType")).OrderByDescending(Function(x) x.Count).Any, Audit.Where(Function(failed) not(string.IsNullOrEmpty(failed.Item("wbExceptionType").ToString))).GroupBy(Function(status) status.Item("wbExceptionType")).OrderByDescending(Function(x) x.Count).First.Count, 0)]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod sap2010:Annotation.AnnotationText="Add key &quot;wbConfigError&quot;, value" DisplayName="Add Key &quot;wbConfigError&quot;, value" sap2010:WorkflowViewState.IdRef="InvokeMethod_8" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="x:String">wbConfigError</InArgument>
-                <InArgument x:TypeArguments="x:Object">[If(Audit.Where(Function(x) Convert.ToBoolean(x.Item("configError"))).Count &gt; 0, true, false)]</InArgument>
-              </InvokeMethod>
-              <InvokeMethod DisplayName="Add test statistics" sap2010:WorkflowViewState.IdRef="InvokeMethod_1" MethodName="Add">
-                <InvokeMethod.TargetObject>
-                  <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))">[Statistics]</InArgument>
-                </InvokeMethod.TargetObject>
-                <InArgument x:TypeArguments="scg:Dictionary(x:String, x:Object)">[mappedStatisticalData]</InArgument>
-              </InvokeMethod>
-            </Sequence>
-            <TryCatch DisplayName="Try to save CSV report" sap2010:WorkflowViewState.IdRef="TryCatch_5">
-              <TryCatch.Try>
-                <Sequence DisplayName="Save CSV" sap2010:WorkflowViewState.IdRef="Sequence_25">
-                  <ui:WriteCsvFile Encoding="{x:Null}" AddHeaders="True" DataTable="[dtAudit]" Delimitator="Comma" DisplayName="Write report to CSV" FilePath="[path.Combine(CfgTestResultsSubfolder, &quot;testNumber_&quot;+testRowNumber.ToString+&quot;_&quot;+path.GetFileNameWithoutExtension(row(&quot;WorkflowFile&quot;).ToString)+&quot;_&quot;+ Now.ToString(&quot;yyMMdd.hhmmss&quot;)+&quot;.csv&quot;)]" sap2010:WorkflowViewState.IdRef="WriteCsvFile_2" />
-                </Sequence>
-              </TryCatch.Try>
-              <TryCatch.Catches>
-                <Catch x:TypeArguments="si:IOException" sap2010:WorkflowViewState.IdRef="Catch`1_7">
-                  <ActivityAction x:TypeArguments="si:IOException">
-                    <ActivityAction.Argument>
-                      <DelegateInArgument x:TypeArguments="si:IOException" Name="exception" />
-                    </ActivityAction.Argument>
-                    <ui:LogMessage DisplayName="Log message" sap2010:WorkflowViewState.IdRef="LogMessage_5" Level="Warn" Message="[&quot;Could not save report to &quot;+path.Combine(CfgTestResultsSubfolder, &quot;testNumber_&quot;+testRowNumber.ToString+&quot;_&quot;+path.GetFileNameWithoutExtension(row(&quot;WorkflowFile&quot;).ToString)+&quot;_&quot;+ Now.ToString(&quot;yyMMdd.hhmmss&quot;)+&quot;.csv&quot;)+ &quot;, check permissions. Exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
-                  </ActivityAction>
-                </Catch>
-                <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_8">
-                  <ActivityAction x:TypeArguments="s:Exception">
-                    <ActivityAction.Argument>
-                      <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
-                    </ActivityAction.Argument>
-                    <ui:LogMessage DisplayName="Log message" sap2010:WorkflowViewState.IdRef="LogMessage_6" Level="Warn" Message="[exception.ToString]" />
-                  </ActivityAction>
-                </Catch>
-              </TryCatch.Catches>
-            </TryCatch>
             <Assign DisplayName="Inc test Number" sap2010:WorkflowViewState.IdRef="Assign_19">
               <Assign.To>
                 <OutArgument x:TypeArguments="x:Int32">[testRowNumber]</OutArgument>
@@ -295,50 +156,17 @@
         </ActivityAction>
       </ui:ForEachRow.Body>
     </ui:ForEachRow>
-    <Sequence sap2010:Annotation.AnnotationText="Make the Statistics available as a dt object. " DisplayName="Statistics as datatable" sap2010:WorkflowViewState.IdRef="Sequence_29">
-      <ui:InvokeWorkflowFile ContinueOnError="{x:Null}" DisplayName="Invoke listOfDictToDT workflow" sap2010:WorkflowViewState.IdRef="InvokeWorkflowFile_10" UnSafe="False" WorkflowFileName="Framework\listOfDictToDT.xaml">
-        <ui:InvokeWorkflowFile.Arguments>
-          <InArgument x:TypeArguments="scg:List(scg:Dictionary(x:String, x:Object))" x:Key="in_listOfDict">[Statistics]</InArgument>
-          <OutArgument x:TypeArguments="sd:DataTable" x:Key="out_dt">[dtStatistics]</OutArgument>
-        </ui:InvokeWorkflowFile.Arguments>
-      </ui:InvokeWorkflowFile>
-    </Sequence>
-    <TryCatch DisplayName="Save Statistics" sap2010:WorkflowViewState.IdRef="TryCatch_6">
-      <TryCatch.Try>
-        <Sequence DisplayName="Save CSV" sap2010:WorkflowViewState.IdRef="Sequence_31">
-          <ui:WriteCsvFile Encoding="{x:Null}" AddHeaders="True" DataTable="[dtStatistics]" Delimitator="Comma" DisplayName="Write report to CSV" FilePath="[path.Combine(CfgTestResultsSubfolder, &quot;_Results.csv&quot;)]" sap2010:WorkflowViewState.IdRef="WriteCsvFile_3" />
-        </Sequence>
-      </TryCatch.Try>
-      <TryCatch.Catches>
-        <Catch x:TypeArguments="si:IOException" sap2010:WorkflowViewState.IdRef="Catch`1_9">
-          <ActivityAction x:TypeArguments="si:IOException">
-            <ActivityAction.Argument>
-              <DelegateInArgument x:TypeArguments="si:IOException" Name="exception" />
-            </ActivityAction.Argument>
-            <ui:LogMessage DisplayName="Log message" sap2010:WorkflowViewState.IdRef="LogMessage_7" Level="Warn" Message="[&quot;Could not save report to &quot;+path.Combine(CfgTestResultsSubfolder, &quot;_Results.csv&quot;)+ &quot;, check permissions. Exception &quot;+exception.Message+&quot; at Source &quot;+exception.Source]" />
-          </ActivityAction>
-        </Catch>
-        <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_10">
-          <ActivityAction x:TypeArguments="s:Exception">
-            <ActivityAction.Argument>
-              <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
-            </ActivityAction.Argument>
-            <ui:LogMessage DisplayName="Log message" sap2010:WorkflowViewState.IdRef="LogMessage_8" Level="Warn" Message="[exception.ToString]" />
-          </ActivityAction>
-        </Catch>
-      </TryCatch.Catches>
-    </TryCatch>
-    <sads:DebugSymbol.Symbol>d1xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcRG9jdW1lbnRzXFVpUGF0aFxVaVBhdGhfUkVGcmFtZXdvcmtcVGVzdF9GcmFtZXdvcmtcUnVuQWxsVGVzdHMueGFtbHkBagGBAQECTQPMAg4CAQFQM1A2AgEEUTZRPQIBA1JYUqABAgECVgVrEAMBiwFsBakCFQIBF6oCBbECEAIBELICBcoCEAIBBVoHWt4BAwGVAVsHYhADAZEBYwdqEAMBjAFsjgFsmQEDAYkBcgumAhYCARirAgewAh8CARG0Agm2AhQCAQu+Ag2+As4CAgEJxgINxgKTAQIBBlpCWk0DAZgBWqoBWrEBAwGXAVq/AVrbAQMBlgFgOmDbAQMBlAFdO11RAwGSAWgyaFEDAY8BZTNlTAMBjQF0YHSoAQIBGXcNnQEVAgF0ngENpQEYAgFtpgENhAIYAgEqhQINnQIYAgEfngINpQIWAgEarQJsrQJ4AgEVrgJGrgJUAgETqwK+AasC3QECARK1Agu1ApMCAgEMvgJ6vgLLAgIBCsYCesYCkAECAQd5PXlAAgF1fA+cARoCAXd7IHtbAgF2nwEPpAEnAgFuqAFYqAGYAQIBK6oBD7ABHgIBaLEBD7cBHgIBY7gBD74BHgIBXr8BD8UBHgIBWcYBD8wBHgIBVM0BD9MBHgIBT9QBD9oBHgIBStsBD+EBHgIBReIBD+gBHgIBQOkBD+8BHgIBO/ABD/YBHgIBNvcBD/0BHgIBMf4BD4MCHgIBLIcCEYkCHAIBJZECFZECiwQCASOZAhWZApsBAgEgowI3owJIAgEdoAI4oAJHAgEbtQJMtQJcAgEOtQKcAbUC3wECAQ19EX2GAgMBhwF+EZMBHAIBfZQBEZsBGgIBeKEBdKEBewIBcqIBTqIBVwIBcJ8BxQGfAeQBAgFvrwE4rwFWAgFsrgE4rgFEAgFrrAFUrAFrAgFptgE4tgGOAQIBZ7UBOLUBRAIBZrMBVLMBawIBZL0BOL0BggECAWK8ATi8AUkCAWG6AVS6AWsCAV/EATjEAX4CAV3DATjDAUkCAVzBAVTBAWsCAVrLATjLAYIBAgFYygE4ygFJAgFXyAFUyAFrAgFV0gE40gF+AgFT0QE40QFJAgFSzwFUzwFrAgFQ2QE42QGOAQIBTtgBONgBRwIBTdYBVNYBawIBS+ABOOABnAECAUnfATjfAU4CAUjdAVTdAWsCAUbnATjnAYoBAgFE5gE45gFGAgFD5AFU5AFrAgFB7gE47gHfAwIBP+0BOO0BSAIBPusBVOsBawIBPPUBOPUB0wMCATr0ATj0AUcCATnyAVTyAWsCATf8ATj8AZkBAgE1+wE4+wFFAgE0+QFU+QFrAgEygAJegAJqAgEvggJSggJpAgEtiAITiALLAwIBJpECggGRAogEAgEkmQKCAZkCmAECASF9f32DAgMBiAGAARWIAS0CAX6ZATuZAVECAXuWATyWAVACAXmIAlSIAl8CASiIAp8BiAKXAwIBJ4IBUoIBcAMBhgGGAXiGAX8DAYQBgwFbgwFyAwGCAYQBWIQBYwMBgQGFAViFAVwDAYABgAHEAYAB7gECAX8=</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d1xDOlxVc2Vyc1xtaWhhaS5kdW5hcmVhbnVcRG9jdW1lbnRzXFVpUGF0aFxVaVBhdGhfUkVGcmFtZXdvcmtcVGVzdF9GcmFtZXdvcmtcUnVuQWxsVGVzdHMueGFtbCEBagGBAQECTQOgAQ4CAQFQM1A2AgECUwVoEAIBG2kFngEVAgEDVwdX3gECASVYB18QAgEhYAdnEAIBHGmOAWmZAQIBGW8LmwEWAgEEV0JXTQIBKFeqAVexAQIBJ1e/AVfbAQIBJl06XckBAgEkWjtaUQIBImUyZVECAR9iM2JMAgEdcA2SARUCAQqTAQ2aARYCAQVyPXJAAgELdQ+RARoCAQ10IHRbAgEMmAE3mAFIAgEIlQE4lQFHAgEGdhF2hgICARd3EYgBHAIBE4kBEZABGgIBDnZ/doMCAgEYeRV9LQIBFI4BO44BUQIBEYsBPIsBUAIBD3tYe2MCARZ5xAF57gECARU=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
       <sap2010:ViewStateData Id="ReadRange_2" sap:VirtualizedContainerService.HintSize="314,87" />
       <sap2010:ViewStateData Id="Assign_31" sap:VirtualizedContainerService.HintSize="314,60" />
       <sap2010:ViewStateData Id="Assign_28" sap:VirtualizedContainerService.HintSize="314,60" />
-      <sap2010:ViewStateData Id="Sequence_30" sap:VirtualizedContainerService.HintSize="518,51">
+      <sap2010:ViewStateData Id="Sequence_30" sap:VirtualizedContainerService.HintSize="518,411">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
@@ -378,146 +206,8 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_9" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="Sequence_26" sap:VirtualizedContainerService.HintSize="466,123">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_3" sap:VirtualizedContainerService.HintSize="218,159">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_4" sap:VirtualizedContainerService.HintSize="218,159">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_5" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_6" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_9" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_10" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_12" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_13" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_14" sap:VirtualizedContainerService.HintSize="218,159">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_16" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_17" sap:VirtualizedContainerService.HintSize="218,174">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_8" sap:VirtualizedContainerService.HintSize="218,159">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeMethod_1" sap:VirtualizedContainerService.HintSize="218,132" />
-      <sap2010:ViewStateData Id="Sequence_27" sap:VirtualizedContainerService.HintSize="466,2881">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="WriteCsvFile_2" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="Sequence_25" sap:VirtualizedContainerService.HintSize="336,211">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_5" sap:VirtualizedContainerService.HintSize="314,93" />
-      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="404,22">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_6" sap:VirtualizedContainerService.HintSize="314,93" />
-      <sap2010:ViewStateData Id="Catch`1_8" sap:VirtualizedContainerService.HintSize="404,22">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_5" sap:VirtualizedContainerService.HintSize="242,51">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Assign_19" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Sequence_24" sap:VirtualizedContainerService.HintSize="488,4268">
+      <sap2010:ViewStateData Id="Assign_19" sap:VirtualizedContainerService.HintSize="466,60" />
+      <sap2010:ViewStateData Id="Sequence_24" sap:VirtualizedContainerService.HintSize="488,1093">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -525,7 +215,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ForEachRow_2" sap:VirtualizedContainerService.HintSize="518,4443">
+      <sap2010:ViewStateData Id="ForEachRow_2" sap:VirtualizedContainerService.HintSize="518,1268">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -534,51 +224,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="InvokeWorkflowFile_10" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="Sequence_29" sap:VirtualizedContainerService.HintSize="516,93">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="WriteCsvFile_3" sap:VirtualizedContainerService.HintSize="314,87" />
-      <sap2010:ViewStateData Id="Sequence_31" sap:VirtualizedContainerService.HintSize="336,211">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_7" sap:VirtualizedContainerService.HintSize="314,91" />
-      <sap2010:ViewStateData Id="Catch`1_9" sap:VirtualizedContainerService.HintSize="400,21">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="LogMessage_8" sap:VirtualizedContainerService.HintSize="314,91" />
-      <sap2010:ViewStateData Id="Catch`1_10" sap:VirtualizedContainerService.HintSize="400,21">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_6" sap:VirtualizedContainerService.HintSize="516,51">
-        <sap:WorkflowViewStateService.ViewState>
-          <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
-            <x:Boolean x:Key="IsPinned">False</x:Boolean>
-          </scg:Dictionary>
-        </sap:WorkflowViewStateService.ViewState>
-      </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="540,4984">
+      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="540,1945">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -586,7 +232,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="RunAllTests_1" sap:VirtualizedContainerService.HintSize="580,5064" />
+      <sap2010:ViewStateData Id="RunAllTests_1" sap:VirtualizedContainerService.HintSize="580,2025" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
