@@ -100,18 +100,19 @@
               <InArgument x:TypeArguments="x:String">[if (string.IsNullOrEmpty(in_wbParentPath), wbType, in_wbParentPath+"|"+wbType)]</InArgument>
             </Assign.Value>
           </Assign>
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add default wb fields&#xA;wbType&#xA;wbPath&#xA;wbLevel&#xA;wbStatus" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_27">
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Add default wb fields&#xA;wbType&#xA;wbPath&#xA;wbLevel&#xA;wbState" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_27">
             <ui:AddLogFields.Fields>
               <InArgument x:TypeArguments="x:String" x:Key="wbType">[wbType]</InArgument>
               <InArgument x:TypeArguments="x:String" x:Key="wbPath">[wbPath]</InArgument>
               <InArgument x:TypeArguments="x:Int32" x:Key="wbLevel">[wbPath.Count(Function(x) x="|")]</InArgument>
-              <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Executing</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbState">Executing</InArgument>
             </ui:AddLogFields.Fields>
           </ui:AddLogFields>
-          <ui:AddLogFields sap2010:Annotation.AnnotationText="Publish input fields&#xA;wbFinalExec" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_33">
+          <ui:AddLogFields sap2010:Annotation.AnnotationText="Publish input fields&#xA;wbRetriesLeft" DisplayName="Add log fields">
             <ui:AddLogFields.Fields>
-              <InArgument x:TypeArguments="x:Boolean" x:Key="wbFinalExec">[if(in_RetryNumber &gt;= cint(in_Config.Item("MaxRetryNumber")), true, false)]</InArgument>
+              <InArgument x:TypeArguments="x:Int32" x:Key="wbRetriesLeft">[cint(in_Config.Item("MaxRetryNumber"))-in_RetryNumber]</InArgument>
             </ui:AddLogFields.Fields>
+            <sap2010:WorkflowViewState.IdRef>AddLogFields_34</sap2010:WorkflowViewState.IdRef>
           </ui:AddLogFields>
           <ui:LogMessage DisplayName="Log execution started message" sap2010:WorkflowViewState.IdRef="LogMessage_1" Level="Info" Message="[wbPath + &quot; execution started.&quot;]" />
         </Sequence>
@@ -120,6 +121,7 @@
           <ui:AddLogFields sap2010:Annotation.AnnotationText="Add log fields describing outcome:&#xA;&#xA;wbStatus" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_29">
             <ui:AddLogFields.Fields>
               <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Successful</InArgument>
+              <InArgument x:TypeArguments="x:String" x:Key="wbState">Ended</InArgument>
             </ui:AddLogFields.Fields>
           </ui:AddLogFields>
           <ui:AddLogFields sap2010:Annotation.AnnotationText="Publish output fields" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_30">
@@ -139,9 +141,10 @@
           </ActivityAction.Argument>
           <Sequence DisplayName="Catch, log and rethrow" sap2010:WorkflowViewState.IdRef="Sequence_68">
             <Sequence sap2010:Annotation.AnnotationText="Failed logging for workblock. &#xA;You should also publish the output arguments that you want to make available in the log." DisplayName="wb Logging Failed" sap2010:WorkflowViewState.IdRef="Sequence_67">
-              <ui:AddLogFields sap2010:Annotation.AnnotationText="Add log fields describing outcome:&#xA;&#xA;wbStatus&#xA;wbExceptionType" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_31">
+              <ui:AddLogFields sap2010:Annotation.AnnotationText="Add log fields describing outcome:&#xA;&#xA;wbStatus&#xA;wbState&#xA;wbExceptionType" DisplayName="Add log fields" sap2010:WorkflowViewState.IdRef="AddLogFields_31">
                 <ui:AddLogFields.Fields>
                   <InArgument x:TypeArguments="x:String" x:Key="wbStatus">Failed</InArgument>
+                  <InArgument x:TypeArguments="x:String" x:Key="wbState">Ended</InArgument>
                   <InArgument x:TypeArguments="x:String" x:Key="wbExceptionType">[exception.GetType.Name]</InArgument>
                 </ui:AddLogFields.Fields>
               </ui:AddLogFields>
@@ -157,7 +160,7 @@
         </ActivityAction>
       </Catch>
     </TryCatch.Catches>
-    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XERvY3VtZW50c1xVaVBhdGhcVWlQYXRoIEVuY2hhbmNlZCBSRUZyYW1ld29ya1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMlxQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWwiTwOhAQ4CAQFVB4QBEgIBDYwBC5wBFgIBAlYJdRQCARZ2CXauAQIBFXcJgwEUAgEOjQENmgEYAgEEmwENmwFFAgEDVwteFAIBLV8LZhQCASVnC24dAgEebwtzHQIBGnQLdLkBAgEXeAt8HQIBE30LgQEdAgESggELggG3AQIBD44BD5MBIQIBCZQBD5gBIQIBCJkBD5kBvAECAQVcNlxIAgEwWTdZPwIBLmQ2ZIYBAgEoYTdhPwIBJmxHbFACASRqRWpNAgEiaUVpTQIBIGtFa2YCAR9xS3GZAQIBG3SKAXS2AQIBGHpHelECARSCAYoBggG0AQIBEJABS5ABUQIBDJEBUpEBagIBCpkBjwGZAbkBAgEG</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d5IBQzpcVXNlcnNcbWloYWkuZHVuYXJlYW51XERvY3VtZW50c1xVaVBhdGhcVWlQYXRoIEVuY2hhbmNlZCBSRUZyYW1ld29ya1xVaVBhdGhfUkVGcmFtZXdvcmtcU2VydmljZXNMYXllclxUYXNrMlxQcm9jZXNzTGF5ZXJcUHJvY2Vzc1RyYW5zYWN0aW9uLnhhbWwkTwOkAQ4CAQFVB4YBEgIBDo4BC58BFgIBAlYJdhQCARh3CXeuAQIBF3gJhQEUAgEPjwENnQEYAgEEngENngFFAgEDVwteFAIBL18LZhQCASdnC24dAgEgbwt0HQIBHHULdbkBAgEZeQt+HQIBFH8LgwEdAgEThAELhAG3AQIBEJABD5YBIQIBCZcBD5sBIQIBCJwBD5wBvAECAQVcNlxIAgEyWTdZPwIBMGQ2ZIYBAgEqYTdhPwIBKGpFak0CASVsRmxPAgEkaUVpTQIBImtFa2YCASFxS3GCAQIBHXWKAXW2AQIBGntHe1ECARZ8RnxLAgEVhAGKAYQBtAECARGSAUuSAVECAQ2TAUqTAU8CAQyUAVKUAWoCAQqcAY8BnAG5AQIBBg==</sads:DebugSymbol.Symbol>
   </TryCatch>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -182,7 +185,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="AddLogFields_33" sap:VirtualizedContainerService.HintSize="314,64">
+      <sap2010:ViewStateData Id="AddLogFields_34" sap:VirtualizedContainerService.HintSize="314,64">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
@@ -267,29 +270,29 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="Rethrow_13" sap:VirtualizedContainerService.HintSize="336,22" />
-      <sap2010:ViewStateData Id="Sequence_68" sap:VirtualizedContainerService.HintSize="358,696">
+      <sap2010:ViewStateData Id="Sequence_68" sap:VirtualizedContainerService.HintSize="358,639">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="400,765">
+      <sap2010:ViewStateData Id="Catch`1_7" sap:VirtualizedContainerService.HintSize="640,21">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
-            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
             <x:Boolean x:Key="IsPinned">False</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="414,1014">
+      <sap2010:ViewStateData Id="TryCatch_4" sap:VirtualizedContainerService.HintSize="654,2168">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsAnnotationDocked">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="454,1134" />
+      <sap2010:ViewStateData Id="ProcessTransaction_1" sap:VirtualizedContainerService.HintSize="694,2288" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
