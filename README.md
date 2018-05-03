@@ -26,7 +26,7 @@ Details:
 ### How It Works ###
 *This version of the framework is not yet final (use caution) but has been heavily tested and should be safe to use*
 
-[ReFrameWork Documentation - the workblock concept](https://github.com/mihhdu/UiPath_REFramework/blob/master/Documentation/Work%20Block%20UML.pdf)
+[ReFrameWork Documentation - the workblock concept](https://github.com/mihhdu/UiPath_REFramework/blob/master/Documentation/Workblock%20UML.pdf)
 
 [ReFrameWork Workblocks, multi layered view UML](https://github.com/mihhdu/UiPath_REFramework/blob/master/Documentation/REFramework%20Work%20Blocks.pdf)
 
