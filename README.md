@@ -13,8 +13,8 @@ Features:
 
 Details:
 
-* composed of configurable functional components called Workblocks.
-* using *State Machine* layout with Workblocks in each state.
+* composed of workflows that record hierarchical and execution data in a consistent way, termed Workblocks.
+* using *State Machine* layout.
 * offering high level exception handling and application recovery.
 * offer a mechanism to abort process execution in certain cases where continuing is distructive
 * keeps external settings in *Data\Config.xlsx* file and Orchestrator assets.
