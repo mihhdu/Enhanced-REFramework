@@ -11,6 +11,7 @@ Changelog:
 * Strive to Achieve Separation of Concerns by splitting the framework into layers. Thus, business should only be concerned with Business Logic code. (Note 2)
 * State machine transitions is where the framework managed transaction iterators, the TransactionNumber and RetryNumber are incremented and system flags set. They are now kept in a dictionary called SystemReserved.
 * SetTransactionStatus.xaml has now disappeared.
+* CleanupAndPrep.xaml workflow added to ProcessLayer folder; This workflow gets executed once upon process startup. 
 * Process.xaml is moved/renamed to ProcessLayer\ProcessTransaction.xaml.
 * Framework\GetTransactionData.xaml is moved/renamed ProcessLayer\GetSetTransactionData.xaml.
 * Framework\InitAllApplications.xaml is moved/renamed ProcessLayer\InitAllApplications.xaml.
@@ -31,23 +32,32 @@ Notes:
 1. Framework is now composed of Work Blocks. Each work block represents the minimal run and log structure. It is made up of a try-catch block. Within the Try section, the code we want to execute. After executing we log success, gathering runtime and hierarchical information from child Workblocks and passing it on to parent the Workblock. If an exception occurs within the code, the work block will catch the exception, log the failure, output the exception and rethrow it.
 As such, the framework layer has 4 Workblocks. A master Workblock, let's call it "MainTask". This workblock has three child Workblocks: "Init", "GetSetData" and "Process".
 
-The following log fields need to be logged, at a minimum level, in each work block:
+A workblock will add default log fields both at the beginning and at the end of execution. 
 
-The following log fields are added:
-Add Hierarchy Log Fields:
- + wbName - Name of current workblock
- + wbPath - Workblock execution path to the current workblock, reflecting all ancestors and self
- + wbLevel - Level of current workblock 
+At the start of workblock execution, the following log fields with the following values will be added:
+wbName: string = Workblock Name property or workflow name if empty
+wbParentName: string = Parent Workblock Name property or parent workflow name if empty
+wbKey: string = unique identifier for the instance
+wbParentKey: string = unique identifier for parent instance
+wbPath: string = Top down path is formed of wbNames, separated by “|”
+wbLevel: int = the number of “|”
+wbStartTime: string = now.ToString(“yyyyMMdd HH:mm:ss.fff”) (format discussion)
+wbState: string = “Executing”
+Message: string = “Workblock [wbName] execution started.”
 
-Add Execution Log Fields:
- + wbStatus - takes the value "Executing" when block execution begins. If the current workblock is successful then set "Successful", else "Failed"
- + wbExceptionType - Name of the exception in case status is "Failed"
+At the end of the workblock execution, if it is successful, the following log fields will be added/changed:
+wbStatus: string = “Successful”
+wbState: string = “Ended”
+wbDurationSec: double = duration in seconds
+message: “Workblock [wbName] has finished successfully.”
 
-The following rules should be applied to Workblocks:
-
-* wbName should be unique
-* There should be exactly one log message containing the status of the Workblock execution, at the end of the Workblock.
-* We should be wise in not generating a large quantity of log data by not logging successful work block executions for every single Workblock.
+If the workblock is failed, the following log fields will be added/changed:
+wbStatus: string = ”Failed”
+wbState: string = “Ended”
+wbDurationSec: double = duration in seconds
+wbExceptionType: string = exception.GetType.Name
+wbExceptionMessage: string = exception.Message
+Message: “Workblock [wbName] has failed with the [exception.GetType.Name]: [exception.Message].
 
 2. Separate the different components of the framework into layers:
 a) Framework layer (the main dataflow representation, a state machine, calling different components of code). In this section the pieces of code that are needed for framework operation are encapsulated in a "System Reserved" sequence.
