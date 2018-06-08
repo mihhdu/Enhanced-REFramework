@@ -37,7 +37,7 @@ Details:
 ### For New Project ###
 To begin implementing take the following steps:
 
-1. Check out the *Data\Config.xlsx* file and add/customize any required fields and values. Also change the names of workblocks and enable system tasks if you need them.
+1. Check out the *Data\Config.xlsx* file and add/customize any required fields and values. You can always come back to the config later.
 
 2. Decide what the process is going to achieve. Think about what kind of data is moving around in the process. Think about wheather or not it is a cyclical process or executes just once.
 
