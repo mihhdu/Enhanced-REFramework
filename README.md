@@ -26,13 +26,13 @@ Details:
 ### How It Works ###
 *This version of the framework is not yet final (use caution) but has been heavily tested and should be safe to use*
 
-[ReFrameWork Documentation - the workblock concept](https://github.com/mihhdu/UiPath_REFramework/blob/master/Documentation/Workblock%20UML.pdf)
+[ReFrameWork Documentation - the workblock concept](https://github.com/mihhdu/Enhanced-REFramework/blob/master/Documentation/Workblock%20UML.pdf)
 
-[ReFrameWork Workblocks, multi layered view UML](https://github.com/mihhdu/UiPath_REFramework/blob/master/Documentation/REFramework%20Work%20Blocks.pdf)
+[ReFrameWork Workblocks, multi layered view UML](https://github.com/mihhdu/Enhanced-REFramework/blob/master/Documentation/REFramework%20Work%20Blocks.pdf)
 
-[ReFrameWork Architecture, Flat view UML](https://github.com/mihhdu/UiPath_REFramework/blob/master/Documentation/REFramework%20architecture%20UML.pdf)
+[ReFrameWork Architecture, Flat view UML](https://github.com/mihhdu/Enhanced-REFramework/blob/master/Documentation/REFramework%20architecture%20UML.pdf)
 
-[ReFrameWork Manual - not updated](https://github.com/mihhdu/UiPath_ReFrameWork/blob/master/Documentation/REFramework%20documentation.pdf)
+[ReFrameWork Manual - not updated](https://github.com/mihhdu/Enhanced-REFramework/blob/master/Documentation/REFramework%20documentation.pdf)
 
 ### For New Project ###
 To begin implementing take the following steps:
