@@ -24,11 +24,11 @@ Details:
 * implements services (off by default - see *Data\Config.xlsx*) to solve specific tasks independently.
 
 ### Dependencies ###
-UiPath.Core.Activities
-UiPath.Credentials.Activities
-UiPath.Excel.Activities
-UiPath.Mail.Activities
-UiPath.WebAPI.Activities
+* UiPath.Core.Activities
+* UiPath.Credentials.Activities
+* UiPath.Excel.Activities
+* UiPath.Mail.Activities
+* UiPath.WebAPI.Activities
 
 ### How It Works ###
 *This version of the framework is not yet final (use caution) but has been heavily tested and should be safe to use*
