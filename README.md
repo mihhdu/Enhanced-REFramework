@@ -16,12 +16,18 @@ Details:
 * composed of workflows that record hierarchical and execution data in a consistent way, termed Workblocks.
 * using *State Machine* layout.
 * offering high level exception handling and application recovery.
-* offer a mechanism to abort process execution in certain cases where continuing is distructive
+* offer a mechanism to abort process execution in certain cases where continuing is destructive
 * keeps external settings in *Data\Config.xlsx* file and Orchestrator assets.
 * pulls credentials from *Credential Manager* and Orchestrator assets.
 * takes screenshots in case of application exceptions.
 * provides extra utility workflows.
 * implements services (off by default - see *Data\Config.xlsx*) to solve specific tasks independently.
+
+### Dependencies ###
+UiPath.Core.Activities
+UiPath.Credentials.Activities
+UiPath.Excel.Activities
+UiPath.Web.Activities
 
 ### How It Works ###
 *This version of the framework is not yet final (use caution) but has been heavily tested and should be safe to use*
@@ -50,7 +56,7 @@ Ignore errors being generated for the moment.
 
 5. Open *ProcessLayer\ProcessTransaction.xaml* and change io_TransactionItem's datatype to match the one you set up in the Main.xaml file.
 
-6. Open Main.xaml and update the interfaces to the functions in the **GET/SET TRANSACTION DATA** and **PROCESS TRANSACTION** states by clicking the import button. The errors from point 1. should now dissapear.
+6. Open Main.xaml and update the interfaces to the functions in the **GET/SET TRANSACTION DATA** and **PROCESS TRANSACTION** states by clicking the import button. The errors from point 1. should now disappear.
 
 7. Begin writing business code in the workflows located in the *ProcessLayer* folder
 
