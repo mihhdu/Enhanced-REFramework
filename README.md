@@ -27,7 +27,8 @@ Details:
 UiPath.Core.Activities
 UiPath.Credentials.Activities
 UiPath.Excel.Activities
-UiPath.Web.Activities
+UiPath.Mail.Activities
+UiPath.WebAPI.Activities
 
 ### How It Works ###
 *This version of the framework is not yet final (use caution) but has been heavily tested and should be safe to use*
